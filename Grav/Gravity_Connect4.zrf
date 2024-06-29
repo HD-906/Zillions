@@ -1,0 +1,346 @@
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+; (define pile ( $1 (verify (not-empty? $2)) (while not-empty? $3) (capture v) (flip $2) add) )
+(define pile ( $1 (verify friend?) k (while (on-board? $2) mark (put $1 $3) $2) (put $1 $3)) )
+
+(define put  (while (and not-empty? (on-board? $2)) $2) (if empty? (capture v) (flip $1) add) back)
+
+(define grav ( (verify (and (empty? v) (empty? $1))) $1 flip k (scan $2 $3 $4) (create X v) (go from) $1 add) )
+
+(define scan (while (on-board? $3) (fall $1 $2) $3)
+		(fall $1 $2)
+)
+
+(define fall   (while (and not-empty? (on-board? $1)) $1)
+		mark (set-flag presettled not-empty?)
+		(while (and empty? (on-board? $1)) $1)
+		(set-flag presettled (or empty? (flag? presettled)))
+		(set-flag settled false)
+		(while (and (not-flag? settled) (not-flag? presettled)) (set-position-flag fallen true) (set-flag en enemy?)
+			back (create checker) (if (flag? en) flip) (set-position-flag landed true) $1 mark
+			(while (and (or empty? (position-flag? fallen)) (on-board? $1)) $1)
+			(set-flag settled (or empty? (position-flag? fallen)))
+		) $2 (if (not-flag? presettled) $1 (while (on-board? $1) (if (and (position-flag? fallen) (not-position-flag? landed)) capture) $1)
+		(if (position-flag? fallen) capture) $2)
+)
+
+(define chain ( (verify (and enemy? (not-enemy? (opposite $1)))) $1 (verify enemy?) $1 (verify enemy?) $1 (verify (and enemy? (not-enemy? $1))) add (go from) add $1 add $1 add) )
+
+(define wchain ( (verify (and friend? (not-friend? (opposite $1)))) $1 (verify friend?) $1 (verify friend?) $1 (verify (and friend? (not-friend? $1))) add (go from) add $1 add $1 add) )
+
+(define common-grid-stuff
+    (start-rectangle 52 52 96 96) ; top-left position
+    (directions (n 0 -1) (e 1 0) (w -1 0) (ne 1 -1) (nw -1 -1) (s 0 1))
+)
+
+(game
+    (title "Gravity Connect4 4x4")
+    (description "Object: Be the first player to get 4 of your pieces in a row,
+          horizontally, vertically, or diagonally.  Moves are made by dropping pieces
+          to the lowest unoccupied space in a column.")
+    (history "Also known as Gravitational TicTacToe and 4-in-a-row, this game has been
+        marketed in a 7x6 version under the name Connect-4.")
+    (strategy "Try to position your checkers to get as many `potential` 4-in-a-rows
+        as possible, and use these threats to prevent your opponent from dropping
+        into as as many columns as you can.    The best opening move for Red on
+        boards with odd numbers of columns is to drop into the central column.\\
+        Victor Allis, a Dutch computer scientist, proved in the late 1980's that Red
+        has a forced win on the 7x6 board.")
+    (option "animate drops" false)
+    (option "animate captures" false)
+    (option "discard cascades" true)
+    (drop-sound "Audio\\SlideDown.wav")
+    (win-sound "Audio\\Congrats.wav")
+    (loss-sound "Audio\\YouLose.wav")
+    (players Red Black)
+    (turn-order Red Black)
+    (move-priorities loss win)
+    (board
+        (image "Gravity_Connect4\4x4.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -3) (ee 3 0) (ww -3 0) (ss 0 3))
+            (dimensions
+                ("a/b/c/d" (45 0)) ; columns
+                ("4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 144 4 229 46) (D 235 144 277 229) (L 52 235 137 277) (v 1 1 12 12))
+        (links k (U a4) (L a1) (D d1) (R d4)) 
+	) 
+    (piece
+    (image Red "Gravity_Connect4\red.bmp"
+           Black "Gravity_Connect4\black.bmp")
+    (name checker)
+	(help "Checker: drops to bottom of any column")
+        (drops
+            (pile D w n)
+            (pile L n e)
+            (pile U e s)
+            (pile R s w)
+		)
+	)
+    (piece
+    (image Red "Gravity_Connect4\GreenBulb.bmp"
+           Black "Gravity_Connect4\GreenBulb.bmp")
+    (name arrow)
+	(help "Arrow: defines current gravity direction")
+        (moves
+            (grav U s nn e)
+            (grav L e ww n)
+            (grav D n ss w)
+            (grav R w ee s)
+		)
+	)
+    (piece
+    (image Red "Gravity_Connect4\RedBulb.bmp"
+           Black "Gravity_Connect4\RedBulb.bmp")
+    (name X)
+	(help "Not able to change gravity")
+	)
+    (piece
+    (image Red "Gravity_Connect4\black.bmp"
+           Black "Gravity_Connect4\red.bmp")
+    (name los)
+	(help "LOSS")
+        (drops (move-type loss)
+            (chain n)
+            (chain e)
+            (chain nw)
+            (chain ne)
+		)
+	)
+    (piece
+    (image Red "Gravity_Connect4\red.bmp"
+           Black "Gravity_Connect4\black.bmp")
+    (name winn)
+	(help "WIN")
+        (drops (move-type win)
+            (wchain n)
+            (wchain e)
+            (wchain nw)
+            (wchain ne)
+		)
+	)
+    (board-setup
+        (Red (checker off 100)
+             (los off 1)
+             (arrow D))
+        (Black (checker off 100)
+               (los off 1))
+	)
+    (loss-condition (Red Black)
+	  (pieces-remaining 1 los)
+	)
+    (win-condition (Red Black)
+	  (pieces-remaining 1 winn)
+	)
+)
+
+(variant
+    (title "Gravity Connect4 5x4")
+    (board
+        (image "Gravity_Connect4\5x4.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -4) (ee 3 0) (ww -3 0) (ss 0 4))
+            (dimensions
+                ("a/b/c/d" (45 0)) ; columns
+                ("5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 144 4 229 46) (D 235 189 277 274) (L 52 280 137 322) (v 1 1 12 12))
+        (links k (U a5) (L a1) (D d1) (R d5)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 5x5")
+    (board
+        (image "Gravity_Connect4\5x5.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -4) (ee 4 0) (ww -4 0) (ss 0 4))
+            (dimensions
+                ("a/b/c/d/e" (45 0)) ; columns
+                ("5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 189 4 274 46) (D 280 189 322 274) (L 52 280 137 322) (v 1 1 12 12))
+        (links k (U a5) (L a1) (D e1) (R e5)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 6x5")
+    (board
+        (image "Gravity_Connect4\6x5.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -5) (ee 4 0) (ww -4 0) (ss 0 5))
+            (dimensions
+                ("a/b/c/d/e" (45 0)) ; columns
+                ("6/5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 189 4 274 46) (D 280 234 322 319) (L 52 325 137 367) (v 1 1 12 12))
+        (links k (U a6) (L a1) (D e1) (R e6)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 6x6")
+    (board
+        (image "Gravity_Connect4\6x6.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -5) (ee 5 0) (ww -5 0) (ss 0 5))
+            (dimensions
+                ("a/b/c/d/e/f" (45 0)) ; columns
+                ("6/5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 234 4 319 46) (D 325 234 367 319) (L 52 325 137 367) (v 1 1 12 12))
+        (links k (U a6) (L a1) (D f1) (R f6)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 7x6")
+    (board
+        (image "Gravity_Connect4\7x6.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -6) (ee 5 0) (ww -5 0) (ss 0 6))
+            (dimensions
+                ("a/b/c/d/e/f" (45 0)) ; columns
+                ("7/6/5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 234 4 319 46) (D 325 279 367 364) (L 52 370 137 412) (v 1 1 12 12))
+        (links k (U a7) (L a1) (D f1) (R f7)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 7x7")
+	(default)
+    (board
+        (image "Gravity_Connect4\7x7.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -6) (ee 6 0) (ww -6 0) (ss 0 6))
+            (dimensions
+                ("a/b/c/d/e/f/g" (45 0)) ; columns
+                ("7/6/5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 279 4 364 46) (D 370 279 412 364) (L 52 370 137 412) (v 1 1 12 12))
+        (links k (U a7) (L a1) (D g1) (R g7)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 8x7")
+    (board
+        (image "Gravity_Connect4\8x7.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -7) (ee 6 0) (ww -6 0) (ss 0 7))
+            (dimensions
+                ("a/b/c/d/e/f/g" (45 0)) ; columns
+                ("8/7/6/5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 279 4 364 46) (D 370 324 412 409) (L 52 415 137 457) (v 1 1 12 12))
+        (links k (U a8) (L a1) (D g1) (R g8)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 8x8")
+    (board
+        (image "Gravity_Connect4\8x8.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -7) (ee 7 0) (ww -7 0) (ss 0 7))
+            (dimensions
+                ("a/b/c/d/e/f/g/h" (45 0)) ; columns
+                ("8/7/6/5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 324 4 409 46) (D 415 324 457 409) (L 52 415 137 457) (v 1 1 12 12))
+        (links k (U a8) (L a1) (D h1) (R h8)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 9x8")
+    (board
+        (image "Gravity_Connect4\9x8.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -8) (ee 7 0) (ww -7 0) (ss 0 8))
+            (dimensions
+                ("a/b/c/d/e/f/g/h" (45 0)) ; columns
+                ("9/8/7/6/5/4/3/2/1" (0 45)) ; rows
+			)
+		)
+        (positions (U 4 52 46 137) (R 324 4 409 46) (D 415 369 457 454) (L 52 460 137 502) (v 1 1 12 12))
+        (links k (U a9) (L a1) (D h1) (R h9)) 
+	) 
+)
+
+(variant
+    (title "Gravity Connect4 9x9")
+    (board
+        (image "Gravity_Connect4\9x9.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -8) (ee 8 0) (ww -8 0) (ss 0 8))
+            (dimensions
+                ("a/b/c/d/e/f/g/h/i" (45 0)) ; columns
+                ("9/8/7/6/5/4/3/2/1" (0 45)) ; rows
+            )
+        )
+        (positions (U 4 52 46 137) (R 369 4 454 46) (D 460 369 502 454) (L 52 460 137 502) (v 1 1 12 12))
+        (links k (U a9) (L a1) (D i1) (R i9)) 
+    ) 
+)
+
+(variant
+    (title "Gravity Connect4 10x9")
+    (board
+        (image "Gravity_Connect4\10x9.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -9) (ee 8 0) (ww -8 0) (ss 0 9))
+            (dimensions
+                ("a/b/c/d/e/f/g/h/i" (45 0)) ; columns
+                ("0/9/8/7/6/5/4/3/2/1" (0 45)) ; rows
+            )
+        )
+        (positions (U 4 52 46 137) (R 369 4 454 46) (D 460 414 502 499) (L 52 505 137 547) (v 1 1 12 12))
+        (links k (U a0) (L a1) (D i1) (R i0)) 
+    ) 
+)
+
+(variant
+    (title "Gravity Connect4 10x10")
+    (board
+        (image "Gravity_Connect4\10x10.bmp")
+        (grid
+            (common-grid-stuff)
+    (directions (nn 0 -9) (ee 9 0) (ww -9 0) (ss 0 9))
+            (dimensions
+                ("a/b/c/d/e/f/g/h/i/j" (45 0)) ; columns
+                ("0/9/8/7/6/5/4/3/2/1" (0 45)) ; rows
+            )
+        )
+        (positions (U 4 52 46 137) (R 414 4 499 46) (D 505 414 547 499) (L 52 505 137 547) (v 1 1 12 12))
+        (links k (U a0) (L a1) (D j1) (R j0)) 
+    ) 
+)
