@@ -1,0 +1,206 @@
+; *** Tic-Tac-Toe
+; *** Copyright 1998-2002 Zillions Development
+; v.2.0
+
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define draw_line_i
+	(set-flag hasDrawn false)
+	adj1 (draw_box) back (if (on-board? adj2) adj2 (draw_box)) back (if (not-flag? hasDrawn) add else (add-partial subs))
+)
+
+(define draw_line_s
+	(set-flag hasDrawn false)
+	adj1 (draw_box) back (if (on-board? adj2) adj2 (draw_box)) back (if (not-flag? hasDrawn) add-copy else (add-copy-partial subs))
+)
+(define draw_line_init
+	(	(verify (and empty? (not-in-zone? boxZone)))
+		(draw_line_i)
+	) 
+)
+(define draw_line_subs
+	(hA1 (while true (if empty? mark (draw_line_s)) next))
+)
+
+(define drawn?			(or (not-empty? $1) (marked? $1)) )
+(define surrounded?		(and (drawn? n) (drawn? e) (drawn? s) (drawn? w)) )
+(define draw_box  		(if (and (surrounded?) (in-zone? boxZone)) (create box) (set-flag hasDrawn true)) )
+
+(game
+	(title "DotsAndBox")
+	(description "Dots and Boxes, also known as the Dot Game or Squares, is an engaging 
+		pen-and-paper or digital two-player game played on a grid of dots. The game typically 
+		begins with an empty grid of dots, arranged in a square or rectangular shape. Players 
+   		take turns connecting two adjacent dots, either horizontally or vertically, with the 
+   		goal of forming squares. When a player successfully closes a square by connecting its 
+   		fourth side, they claim it by marking it with their initials or a symbol. The player 
+   		with the most claimed squares at the end of the game emerges as the winner. Dots and Boxes 
+   		is easy to learn, making it a popular choice for casual play, yet it also offers strategic 
+   		depth as players seek to outmaneuver each other and secure victory.")
+   	(history "Dots and Boxes has a rich history dating back to the 19th century. It was first described 
+   		in the 19th-century German game book 'Nasenbar' and was known by various names in different parts 
+   		of the world, including 'La Pipopipette' in France and 'Pigs in a Pen' in the United States. 
+   		The game gained widespread popularity and recognition under the name 'Dots and Boxes' when it was 
+   		published in the 1889 issue of Scientific American. Over the years, it has been enjoyed by people 
+   		of all ages and has been a staple of pencil-and-paper games, often played during school lessons or 
+   		as a leisure activity. Its simplicity and strategic elements have contributed to its enduring appeal.")
+   	(strategy "While Dots and Boxes may appear deceptively simple, it involves strategic thinking and planning 
+   		to secure victory. Key strategies include controlling the board's center, as it offers more opportunities 
+   		to form squares; forcing your opponent into positions where they must give up squares; and creating long 
+   		chains of dots to guarantee multiple squares in one move. Additionally, players must be cautious not to 
+   		open up scoring opportunities for their opponent while maximizing their own. The endgame can be particularly 
+   		crucial, as it often involves a delicate balance between securing the last squares and setting up your 
+   		opponent for unfavorable moves. Mastering Dots and Boxes requires a mix of tactical cunning and forward planning, 
+   		making it a timeless and enjoyable game for enthusiasts of all skill levels.")
+   (option "animate drops" false)
+   (option "prevent flipping" 2)
+   (win-sound "Audio\\Congrats.wav")
+   (loss-sound "Audio\\YouLose.wav")
+   (players R B)
+   (turn-order R B)
+   (move-priorities init subs)
+   (board
+        (image "images\board.bmp")
+        (grid ; colour grid
+			(start-rectangle 59 59 119 119) ; top-left position
+ 			(dimensions ;4x6
+                ("d/c/b/a" (0 100)) ; rows
+                ("1/2/3/4/5/6" (100 0)) ; columns
+			)
+        )
+        (grid ; horizontal line
+			(start-rectangle 59 19 119 59) ; top-left position
+			(dimensions ;5x6
+                ("hE/hD/hC/hB/hA" (0 100)) ; rows
+                ("1/2/3/4/5/6" (100 0)) ; columns
+			)
+			(directions (next 0 1))
+        )
+		(grid ; vertical line
+			(start-rectangle 19 59 59 119) ; top-left position
+			(dimensions ;4x7
+				("vD/vC/vB/vA" (0 100)) ; rows
+				("1/2/3/4/5/6/7" (100 0)) ; columns
+			)
+			(directions (next 0 1))
+		)
+		(links adj1 (hA1 a1) (hA2 a2) (hA3 a3) (hA4 a4) (hA5 a5) (hA6 a6)
+					(hB1 b1) (hB2 b2) (hB3 b3) (hB4 b4) (hB5 b5) (hB6 b6)
+					(hC1 c1) (hC2 c2) (hC3 c3) (hC4 c4) (hC5 c5) (hC6 c6)
+					(hD1 d1) (hD2 d2) (hD3 d3) (hD4 d4) (hD5 d5) (hD6 d6)
+					(hE1 d1) (hE2 d2) (hE3 d3) (hE4 d4) (hE5 d5) (hE6 d6)
+					(vA1 a1) (vA2 a2) (vA3 a3) (vA4 a4) (vA5 a5) (vA6 a6) (vA7 a6)
+					(vB1 b1) (vB2 b2) (vB3 b3) (vB4 b4) (vB5 b5) (vB6 b6) (vB7 b6)
+					(vC1 c1) (vC2 c2) (vC3 c3) (vC4 c4) (vC5 c5) (vC6 c6) (vC7 c6)
+					(vD1 d1) (vD2 d2) (vD3 d3) (vD4 d4) (vD5 d5) (vD6 d6) (vD7 d6)
+		)
+		(links adj2 (hB1 a1) (hB2 a2) (hB3 a3) (hB4 a4) (hB5 a5) (hB6 a6)
+					(hC1 b1) (hC2 b2) (hC3 b3) (hC4 b4) (hC5 b5) (hC6 b6)
+					(hD1 c1) (hD2 c2) (hD3 c3) (hD4 c4) (hD5 c5) (hD6 c6)
+					(vA2 a1) (vA3 a2) (vA4 a3) (vA5 a4) (vA6 a5)
+					(vB2 b1) (vB3 b2) (vB4 b3) (vB5 b4) (vB6 b5)
+					(vC2 c1) (vC3 c2) (vC4 c3) (vC5 c4) (vC6 c5)
+					(vD2 d1) (vD3 d2) (vD4 d3) (vD5 d4) (vD6 d5)
+		)
+		(links n (a1 hB1) (a2 hB2) (a3 hB3) (a4 hB4) (a5 hB5) (a6 hB6)
+					(b1 hC1) (b2 hC2) (b3 hC3) (b4 hC4) (b5 hC5) (b6 hC6)
+					(c1 hD1) (c2 hD2) (c3 hD3) (c4 hD4) (c5 hD5) (c6 hD6)
+					(d1 hE1) (d2 hE2) (d3 hE3) (d4 hE4) (d5 hE5) (d6 hE6)
+		)
+		(links s (a1 hA1) (a2 hA2) (a3 hA3) (a4 hA4) (a5 hA5) (a6 hA6)
+					(b1 hB1) (b2 hB2) (b3 hB3) (b4 hB4) (b5 hB5) (b6 hB6)
+					(c1 hC1) (c2 hC2) (c3 hC3) (c4 hC4) (c5 hC5) (c6 hC6)
+					(d1 hD1) (d2 hD2) (d3 hD3) (d4 hD4) (d5 hD5) (d6 hD6)
+		)
+		(links e (a1 vA2) (a2 vA3) (a3 vA4) (a4 vA5) (a5 vA6) (a6 vA7)
+					(b1 vB2) (b2 vB3) (b3 vB4) (b4 vB5) (b5 vB6) (b6 vB7)
+					(c1 vC2) (c2 vC3) (c3 vC4) (c4 vC5) (c5 vC6) (c6 vC7)
+					(d1 vD2) (d2 vD3) (d3 vD4) (d4 vD5) (d5 vD6) (d6 vD7)
+		)
+		(links w (a1 vA1) (a2 vA2) (a3 vA3) (a4 vA4) (a5 vA5) (a6 vA6)
+					(b1 vB1) (b2 vB2) (b3 vB3) (b4 vB4) (b5 vB5) (b6 vB6)
+					(c1 vC1) (c2 vC2) (c3 vC3) (c4 vC4) (c5 vC5) (c6 vC6)
+					(d1 vD1) (d2 vD2) (d3 vD3) (d4 vD4) (d5 vD5) (d6 vD6)
+		)
+		(links next (hA6 vA1) (hB6 vB1) (hC6 vC1) (hD6 vD1)
+					(vA7 hB1) (vB7 hC1) (vC7 hD1) (vD7 hE1)
+		)
+		(zone
+			(name boxZone)
+			(players R B)
+			(positions a1 a2 a3 a4 a5 a6
+						b1 b2 b3 b4 b5 b6
+						c1 c2 c3 c4 c5 c6
+						d1 d2 d3 d4 d5 d6
+			)
+		)
+	)
+	(piece
+		(name line)
+		(help "Line: draws on empty line")
+		(image R "images\Sredball.bmp"
+		       B "images\Sbluball.bmp")
+		(drops 
+			(move-type init)
+			(draw_line_init)
+		)
+		(moves
+			(move-type subs)
+			(draw_line_subs)
+		)
+	)
+	(piece
+		(name box)
+		(help "Box: fills a square")
+		(image R "images\RBALLS.bmp"
+		       B "images\BBALLS.bmp")
+		;(drops (test))
+	)
+	(board-setup
+		(R (line off 60))
+		(B (line off 60))
+	)
+
+	(win-condition (R B)
+		(or
+			(pieces-remaining 13 box)
+			(pieces-remaining 14 box)
+			(pieces-remaining 15 box)
+			(pieces-remaining 16 box)
+			(pieces-remaining 17 box)
+			(pieces-remaining 18 box)
+			(pieces-remaining 19 box)
+			(pieces-remaining 20 box)
+			(pieces-remaining 21 box)
+			(pieces-remaining 22 box)
+			(pieces-remaining 23 box)
+			(pieces-remaining 24 box)
+		)
+	)
+)
+
+(variant
+	(title "0")
+	(description "")
+	(history "")
+	(strategy "")
+	(option "animate drops" false)
+)
+
+(variant (title "-"))  ;-----------------------------------------------------
+
+; *** 4x4 Tic-Tac-Toe
+(variant
+	(title "1")
+)
+
+
+(variant (title "-"))  ;-----------------------------------------------------
+
+; *** 5x5 TicTacToe
+(variant
+	(title "2")
+)

@@ -1,0 +1,632 @@
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define S-add 
+	(if (piece? Cannon) capture add else add)
+)
+
+(define pawn-shift (
+	(verify (not-in-zone? move-zone))
+	$1 (verify not-friend?) (S-add)
+))
+
+(define pawn-move (
+	(verify (in-zone? move-zone))
+	$1 (verify empty?) add
+	$1 (verify empty?) add
+))
+
+(define roll (
+	(verify (and (not-friend? $1) (on-board? $1)))
+	(while (and (empty? $1) (not-in-zone? end-zone $1)) $1) add
+	$1
+	(if enemy? (S-add))
+))
+
+(define roll-hor (
+	(verify (and (not-friend? $1) (on-board? $1)))
+	(while (empty? $1) $1) add
+	(if (enemy? $1) $1 (S-add))
+))
+
+(define slide (
+	$1
+	(while empty? add $1)
+	(verify enemy?) (S-add)
+))
+
+(define buss-slide (
+	$1
+	(while empty? add $1) $1
+	(while empty? $1)
+	(verify enemy?) (S-add)
+))
+
+(define cannon-slide (
+	$1
+	(while empty? $1) $1
+	(while not-empty? $1)
+	(while empty? add $1)
+	(verify enemy?) add
+))
+
+(define train-slide (
+	$1
+	(while (and empty? (in-zone? rail)) add $1)
+	(verify (and not-friend? (or (in-zone? rail) (in-zone? stop)))) (S-add)
+))
+
+(define guard-slide (
+	$1
+	(verify (and not-friend? (in-zone? fortress-border))) (S-add)
+	(verify empty?)
+	$1
+	(verify (and not-friend? (in-zone? fortress-border))) (S-add)
+))
+
+(define shift2 (
+	$1
+	(verify empty?)
+	$1 $2
+	(verify not-friend?) (S-add)
+))
+
+(define shift3 (
+	$1
+	(verify empty?)
+	$1
+	(verify (and not-friend? (in-zone? move-zone))) (S-add)
+))
+
+(define shift-man (
+	$1
+	(verify (and not-friend? (in-zone? fortress)))
+	(S-add)
+))
+
+(define shift-king (
+	$1
+	(verify (and not-friend? (not-piece? Cannon) (in-zone? fortress)))
+	add
+))
+
+(define opp-king (
+	n
+	(while empty? n)
+	(verify (and enemy? (piece? King))) add
+))
+
+(define brd-def
+	(image "CBoard.bmp" "IBoard.bmp")
+	(grid
+		(start-rectangle 2 2 43 43)
+		(dimensions
+         		("a/b/c/d/e/f/g/h/i/j/k/m/n" (45 0)) ; files
+        		("1/2/3/4/5/6/7/8/9/10/11/12/13" (0 45)) ; ranks
+     		)
+     		(directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0)
+			     (ne 1 -1) (nw -1 -1) (se 1 1) (sw -1 1)
+     		)
+	)
+	(symmetry Black (n s)(s n) (nw sw)(sw nw) (ne se)(se ne))
+)
+
+(define move-zones 
+	(zone
+		(name move-zone)
+		(players Red)
+		(positions 
+			b13 d13 f13 h13 j13 m13
+			a12 c12 e12 g12 i12 k12 n12
+			b11 d11 f11 h11 j11 m11
+			a10 c10 e10 g10 i10 k10 n10
+			b9 d9 f9 h9 j9 m9
+			a8 c8 e8 g8 i8 k8 n8
+			b7 d7 f7 h7 j7 m7
+		)
+	)
+	(zone
+		(name move-zone)
+		(players Black)
+		(positions 
+			b1 d1 f1 h1 j1 m1
+			a2 c2 e2 g2 i2 k2 n2
+			b3 d3 f3 h3 j3 m3
+			a4 c4 e4 g4 i4 k4 n4
+			b5 d5 f5 h5 j5 m5
+			a6 c6 e6 g6 i6 k6 n6
+			b7 d7 f7 h7 j7 m7
+		)
+	)
+)
+
+(define end-zones 
+	(zone
+		(name end-zone)
+		(players Red)
+		(positions 
+			a1 b1 c1 d1 e1 f1 g1 h1 i1 j1 k1 m1 n1
+		)
+	)
+	(zone
+		(name end-zone)
+		(players Black)
+		(positions 
+			a13 b13 c13 d13 e13 f13 g13 h13 i13 j13 k13 m13 n13
+		)
+	)
+)
+
+(define fortress-border-zones 
+	(zone
+		(name fortress-border)
+		(players Red Black)
+		(positions 
+			g13
+			f12 h12
+			e11 i11
+			f10 h10
+			g9
+			g1
+			f2 h2
+			e3 i3
+			f4 h4
+			g5
+		)
+	)
+)
+
+(define rail-zones 
+	(zone
+		(name rail)
+		(players Red Black)
+		(positions 
+			a13 g13 n13
+			b12 f12 h12 m12
+			c11 e11 g11 i11 k11
+			f10 h10
+			c9 e9 g9 i9 k9
+			b8 f8 h8 m8
+			a7 n7
+			b6 f6 h6 m6
+			c5 e5 g5 i5 k5
+			f4 h4
+			c3 e3 g3 i3 k3
+			b2 f2 h2 m2
+			a1 g1 n1
+		)
+	)
+	(zone
+		(name stop)
+		(players Red Black)
+		(positions 
+			d10 j10 g7 d4 j4
+		)
+	)
+)
+
+(game
+   (title "Original")
+   (description "")
+   (history "")
+   (strategy "")
+   (option "prevent flipping" 2)
+   (win-sound "Audio\Orchestra_CF.wav")
+   (loss-sound "Audio\Orchestra_FC.wav")
+   (click-sound "Audio\Pickup.wav")
+   (release-sound "Audio\WoodThunk.wav")
+   (players Red Black)
+   (turn-order Red Black)
+   (board 
+	(brd-def)
+	(move-zones)
+	(end-zones)
+	(zone
+		(name fortress)
+		(players Red Black)
+		(positions 
+			g13
+			f12 g12 h12
+			e11 f11 g11 h11 i11
+			f10 g10 h10
+			g9
+			g1
+			f2 g2 h2
+			e3 f3 g3 h3 i3
+			f4 g4 h4
+			g5
+		)
+	)
+	(fortress-border-zones)
+	(rail-zones)
+   )
+
+   (board-setup
+      (Red
+         (Pawn a9 b10 c9 e9 g9 i9 k9 m10 n9)
+         (Blunderbuss d10 j10)
+         (Train a13 b12 m12 n13)
+         (Rook c12 k12)
+         (Knight d12 j12)
+         (Bishop e12 i12)
+         (Mandarin f12 h12)
+         (King g12)
+         (Cannon c13 k13)
+         (Catapult e13 i13)
+         (Guard g13)
+      )
+      (Black
+         (Pawn a5 b4 c5 e5 g5 i5 k5 m4 n5)
+         (Blunderbuss d4 j4)
+         (Train a1 b2 m2 n1)
+         (Rook c2 k2)
+         (Knight d2 j2)
+         (Bishop e2 i2)
+         (Mandarin f2 h2)
+         (King g2)
+         (Cannon c1 k1)
+         (Catapult e1 i1)
+         (Guard g1)
+      )
+   )
+
+   (piece
+      (name Pawn)
+      (help "兵/卒：过城前在红线点上不能吃子，可以向前、左、右或斜前方移动一至两格，否则可以吃子，只能向前、左右移动一格。")
+      (description "（兵=卒）在不同颜色的线点上有不同的功能，站在红线点上不能吃子，可以向前、左右、前左斜、前右斜五个方向移动一格或两格，站在黑色线点上可以吃子，只能向前、左右移动一格，走过长城以后统一为黑格走法。")
+      (image Red "Pieces\RPawn.bmp" "Pieces\2\RPawn.bmp"
+             Black "Pieces\BPawn.bmp" "Pieces\2\BPawn.bmp")
+      (moves
+         (pawn-shift n)
+         (pawn-shift e)
+         (pawn-shift w)
+         (pawn-move n)
+         (pawn-move e)
+         (pawn-move w)
+         (pawn-move ne)
+         (pawn-move nw)
+      )
+   )
+
+   (piece
+      (name Blunderbuss)
+      (help "銃：同中国象棋炮")
+      (description "同中国象棋炮")
+      (image Red "Pieces\RBlunderbuss.bmp" "Pieces\2\RBlunderbuss.bmp"
+             Black "Pieces\BBlunderbuss.bmp" "Pieces\2\BBlunderbuss.bmp")
+      (moves
+         (buss-slide n)
+         (buss-slide s)
+         (buss-slide e)
+         (buss-slide w)
+      )
+   )
+
+   (piece
+      (name Train)
+      (help "闌：只在棋盘上的斜线移动和吃子，红点是阑的停顿点，不能一步穿过红点需要在红点停顿一步再穿过，可以一步在一个红点移动到下个红点。")
+      (description "只在棋盘上的斜线移动和吃子，红点是阑的停顿点，不能一步穿过红点需要在红点停顿一步再穿过，可以一步在一个红点移动到下个红点。")
+      (image Red "Pieces\RTrain.bmp" "Pieces\2\RTrain.bmp"
+             Black "Pieces\BTrain.bmp" "Pieces\2\BTrain.bmp")
+      (moves
+         (train-slide ne)
+         (train-slide nw)
+         (train-slide se)
+         (train-slide sw)
+      )
+   )
+
+   (piece
+      (name Rook)
+      (help "車：同中国象棋车")
+      (description "同中国象棋车")
+      (image Red "Pieces\RRook.bmp" "Pieces\2\RRook.bmp"
+             Black "Pieces\BRook.bmp" "Pieces\2\BRook.bmp")
+      (moves
+         (slide n)
+         (slide s)
+         (slide e)
+         (slide w)
+      )
+   )
+
+   (piece
+      (name Knight)
+      (help "馬：同中国象棋马且能纵横跳到第三格，有蹩马腿。")
+      (description "同中国象棋马且能纵横跳到第三格，有蹩马腿。")
+      (image Red "Pieces\RKnight.bmp" "Pieces\2\RKnight.bmp"
+             Black "Pieces\BKnight.bmp" "Pieces\2\BKnight.bmp")
+      (moves
+         (shift2 n e)
+         (shift2 n w)
+         (shift2 n n)
+         (shift2 s e)
+         (shift2 s w)
+         (shift2 s s)
+         (shift2 e n)
+         (shift2 e s)
+         (shift2 e e)
+         (shift2 w n)
+         (shift2 w s)
+         (shift2 w w)
+      )
+   )
+
+   (piece
+      (name Bishop)
+      (help "相/都：同中国象棋象，不能过长城")
+      (description "同中国象棋象，不能过长城")
+      (image Red "Pieces\RBishop.bmp" "Pieces\2\RBishop.bmp"
+             Black "Pieces\BBishop.bmp" "Pieces\2\BBishop.bmp")
+      (moves
+         (shift3 ne)
+         (shift3 nw)
+         (shift3 se)
+         (shift3 sw)
+      )
+   )
+
+   (piece
+      (name Mandarin)
+      (help "仕/氏：同中国象棋士")
+      (description "同中国象棋士")
+      (image Red "Pieces\RMandarin.bmp" "Pieces\2\RMandarin.bmp"
+             Black "Pieces\BMandarin.bmp" "Pieces\2\BMandarin.bmp")
+      (moves
+         (shift-man ne)
+         (shift-man nw)
+         (shift-man se)
+         (shift-man sw)
+      )
+   )
+
+   (piece
+      (name King)
+      (help "皇/單：同中国象棋将帅")
+      (description "同中国象棋将帅")
+      (image Red "Pieces\RKing.bmp" "Pieces\2\RKing.bmp"
+             Black "Pieces\BKing.bmp" "Pieces\2\BKing.bmp")
+      (moves
+         (shift-king n)
+         (shift-king s)
+         (shift-king e)
+         (shift-king w)
+         (opp-king)
+      )
+   )
+
+   (piece
+      (name Cannon)
+      (help "炮/砲：纵横移动吃子，移动和吃子需要一个炮架，和炮架无空隙相连成一排的棋子必须当成一个炮架使用，除了炮吃炮其他吃炮的棋子会同归于尽。")
+      (description "炮可以向前后左右移动吃子，移动和吃子需要一个炮架，和炮架无空隙相连成一排的棋子必须当成一个炮架使用，除了炮吃炮其他吃炮的棋子会同归于尽。")
+      (image Red "Pieces\RCannon.bmp" "Pieces\2\RCannon.bmp"
+             Black "Pieces\BCannon.bmp" "Pieces\2\BCannon.bmp")
+      (moves
+         (cannon-slide n)
+         (cannon-slide s)
+         (cannon-slide e)
+         (cannon-slide w)
+      )
+   )
+
+   (piece
+      (name Catapult)
+      (help "礌：向前、左、右或斜前方移动，移动不能控制格数，遇到本方棋子停，遇到敌方棋子吃掉后停在敌方棋子的位置。")
+      (description "礌可以向前、左、右、前斜5个方向移动，移动不能控制格数，走到尽头停，遇到本方棋子停，遇到敌方棋子吃掉后停在敌方棋子的位置。禁入底线。")
+      (image Red "Pieces\RCatapult.bmp" "Pieces\2\RCatapult.bmp"
+             Black "Pieces\BCatapult.bmp" "Pieces\2\BCatapult.bmp")
+      (moves
+         (roll n)
+         (roll ne)
+         (roll nw)
+         (roll-hor e)
+         (roll-hor w)
+      )
+   )
+
+   (piece
+      (name Guard)
+      (help "衛/尉：只能在九宫的斜虚线移动一步一格或两格不能拐弯。")
+      (description "只能在九宫的斜虚线移动一步一格或两格不能拐弯。")
+      (image Red "Pieces\RGuard.bmp" "Pieces\2\RGuard.bmp"
+             Black "Pieces\BGuard.bmp" "Pieces\2\BGuard.bmp")
+      (moves
+         (guard-slide ne)
+         (guard-slide nw)
+         (guard-slide se)
+         (guard-slide sw)
+      )
+   )
+
+   (loss-condition (Red Black) (checkmated King) )
+   (loss-condition (Red Black) stalemated )
+   (loss-condition (Red Black) repetition )
+)
+
+;**********************************************************************************************************
+
+(variant
+   (title "Altered 1")
+   (board 
+	(brd-def)
+	(move-zones)
+	(end-zones)
+	(zone
+		(name fortress)
+		(players Red Black)
+		(positions 
+			f12 g12 h12
+			f11 g11 h11
+			f10 g10 h10
+			f2 g2 h2
+			f3 g3 h3
+			f4 g4 h4
+		)
+	)
+	(fortress-border-zones)
+	(rail-zones)
+   )
+)
+
+;**********************************************************************************************************
+
+(define pawn-move-n (
+	n
+	(verify not-friend?) (S-add)
+	(verify (and empty? (in-zone? pawn-front)))
+	n
+	(verify empty?) add
+))
+
+(define pawn-shift-2 (
+	(verify (not-in-zone? my-side))
+	$1
+	(verify not-friend?) (S-add)
+))
+
+(define cannon-slide-2 (
+	$1
+	(while empty? $1) $1
+	(while not-empty? $1)
+	(while empty? add $1)
+	(verify enemy?) (S-add)
+))
+
+(define shift-king-2 (
+	$1
+	(verify (and not-friend? (not-piece? Cannon) (or (in-zone? fortress) (in-zone? fortress-border))))
+	add
+))
+
+(define pawn-fronts 
+	(zone
+		(name pawn-front)
+		(players Red)
+		(positions 
+			a8 c8 e8 g8 i8 k8 n8
+			b9 m9
+		)
+	)
+	(zone
+		(name pawn-front)
+		(players Black)
+		(positions 
+			a6 c6 e6 g6 i6 k6 n6
+			b5 m5
+		)
+	)
+)
+
+(define my-sides 
+	(zone
+		(name my-side)
+		(players Red)
+		(positions 
+			a13 b13 c13 d13 e13 f13 g13 h13 i13 j13 k13 m13 n13
+			a12 b12 c12 d12 e12 f12 g12 h12 i12 j12 k12 m12 n12
+			a11 b11 c11 d11 e11 f11 g11 h11 i11 j11 k11 m11 n11
+			a10 b10 c10 d10 e10 f10 g10 h10 i10 j10 k10 m10 n10
+			a9 b9 c9 d9 e9 f9 g9 h9 i9 j9 k9 m9 n9
+			a8 b8 c8 d8 e8 f8 g8 h8 i8 j8 k8 m8 n8
+			a7 b7 c7 d7 e7 f7 g7 h7 i7 j7 k7 m7 n7
+		)
+	)
+	(zone
+		(name my-side)
+		(players Black)
+		(positions 
+			a1 b1 c1 d1 e1 f1 g1 h1 i1 j1 k1 m1 n1
+			a2 b2 c2 d2 e2 f2 g2 h2 i2 j2 k2 m2 n2
+			a3 b3 c3 d3 e3 f3 g3 h3 i3 j3 k3 m3 n3
+			a4 b4 c4 d4 e4 f4 g4 h4 i4 j4 k4 m4 n4
+			a5 b5 c5 d5 e5 f5 g5 h5 i5 j5 k5 m5 n5
+			a6 b6 c6 d6 e6 f6 g6 h6 i6 j6 k6 m6 n6
+			a7 b7 c7 d7 e7 f7 g7 h7 i7 j7 k7 m7 n7
+		)
+	)
+)
+
+(variant
+   (default)
+   (title "Altered 2")
+   (board 
+	(brd-def)
+	(pawn-fronts)
+	(move-zones)
+	(my-sides)
+	(end-zones)
+	(zone
+		(name fortress)
+		(players Red Black)
+		(positions 
+			f12 g12 h12
+			f11 g11 h11
+			f10 g10 h10
+			f2 g2 h2
+			f3 g3 h3
+			f4 g4 h4
+		)
+	)
+	(fortress-border-zones)
+	(rail-zones)
+   )
+
+   (piece
+      (name Pawn)
+      (help "兵/卒：过城前只能向前移动一格，过城后可以向前、左右移动一格。没动过时也可以在不吃子的情况下向前移动两格")
+      (description "（兵=卒）过城前只能向前移动一格，过城后可以向前、左右移动一格。没动过时也可以在不吃子的情况下向前移动两格。")
+      (image Red "Pieces\RPawn.bmp" "Pieces\2\RPawn.bmp"
+             Black "Pieces\BPawn.bmp" "Pieces\2\BPawn.bmp")
+      (moves
+         (pawn-move-n)
+         (pawn-shift-2 e)
+         (pawn-shift-2 w)
+      )
+   )
+
+   (piece
+      (name Catapult)
+      (help "礌：向前、左、右或斜前方移动，移动不能控制格数，遇到本方棋子停，遇到敌方棋子吃掉后停在敌方棋子的位置。")
+      (description "礌可以向前、左、右、前斜5个方向移动，移动不能控制格数，走到尽头停，遇到本方棋子停，遇到敌方棋子吃掉后停在敌方棋子的位置。")
+      (image Red "Pieces\RCatapult.bmp" "Pieces\2\RCatapult.bmp"
+             Black "Pieces\BCatapult.bmp" "Pieces\2\BCatapult.bmp")
+      (moves
+         (roll-hor n)
+         (roll-hor ne)
+         (roll-hor nw)
+         (roll-hor e)
+         (roll-hor w)
+      )
+   )
+
+   (piece
+      (name King)
+      (help "皇/單：同中国象棋将帅，活动范围包括虚线13宫")
+      (description "同中国象棋将帅，活动范围包括虚线13宫")
+      (image Red "Pieces\RKing.bmp" "Pieces\2\RKing.bmp"
+             Black "Pieces\BKing.bmp" "Pieces\2\BKing.bmp")
+      (moves
+         (shift-king-2 n)
+         (shift-king-2 s)
+         (shift-king-2 e)
+         (shift-king-2 w)
+         (opp-king)
+      )
+   )
+
+   (piece
+      (name Cannon)
+      (help "炮/砲：纵横移动吃子，移动和吃子需要一个炮架，和炮架无空隙相连成一排的棋子必须当成一个炮架使用，被吃会二子同归于尽。")
+      (description "炮可以向前后左右移动吃子，移动和吃子需要一个炮架，和炮架无空隙相连成一排的棋子必须当成一个炮架使用，被吃会二子同归于尽。")
+      (image Red "Pieces\RCannon.bmp" "Pieces\2\RCannon.bmp"
+             Black "Pieces\BCannon.bmp" "Pieces\2\BCannon.bmp")
+      (moves
+         (cannon-slide-2 n)
+         (cannon-slide-2 s)
+         (cannon-slide-2 e)
+         (cannon-slide-2 w)
+      )
+   )
+)

@@ -1,0 +1,263 @@
+; *** Chess
+; *** Copyright 1998-2002 Zillions Development
+; v.2.0
+
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define shift        ($1    (verify not-friend?) add) )
+(define leap2        ($1 $2 (verify not-friend?) add) )
+(define slide        ($1 (while empty? add $1) (verify not-friend?) add))
+
+(define Pawn-add
+   (if (in-zone? promotion-zone) (add Knight Bishop Rook Queen) else add)
+)
+(define Pawn-move
+   (
+      nS
+      (verify empty?)
+      (Pawn-add)
+      (verify (in-zone? two_move_rank))
+      nS
+      (verify empty?)
+      add
+   )
+)
+(define Pawn-capture
+   (
+      $1
+      (verify enemy?)
+      (Pawn-add)
+   )
+)
+(define En-Passant
+   (
+      $1
+      (verify enemy?)
+      (verify last-to?)
+      (verify (piece? Pawn))
+      capture
+      nS
+      to
+      nS
+      (verify last-from?)
+      add
+   )
+)
+
+(define Board-Definitions
+  (image "img\Hex_chess.bmp")
+  (grid
+     (start-rectangle 58 174 106 222)
+     (dimensions
+         ("a/b/c/d/e/f/g/h/i/k/l" (49 -28)) ; files
+         ("11/10/9/8/7/6/5/4/3/2/1" (0 56)) ; ranks
+     )
+     (directions (nS 0 -1) (sS 0 1) (neS 1 0) (swS -1 0) (nwS -1 -1) (seS 1 1)
+			     (eD 2 1) (wD -2 -1) (neD 1 -1) (swD -1 1) (nwD -1 -2) (seD 1 2)
+     )
+  )
+  
+     (kill-positions
+			a1 b1 c1 d1 e1 a2 b2 c2 d2 a3 b3 c3 a4 b4 a5
+			g11 h11 i11 k11 l11 h10 i10 k10 l10 i9 k9 l9 k8 l8 l7
+     )
+  (symmetry Black (nS sS)(sS nS) (nwS swS)(swS nwS) (neS seS)(seS neS))
+  (zone
+     (name promotion-zone)
+     (players White)
+     (positions a11 b11 c11 d11 e11 f11 g10 h9 i8 k7 l6)
+  )
+  (zone
+     (name promotion-zone)
+     (players Black)
+     (positions a6 b5 c4 d3 e2 f1 g1 h1 i1 k1 l1)
+  )
+  (zone
+     (name two_move_rank)
+     (players White)
+     (positions a6 b6 c6 d6 e6 f6 g5 h4 i3 k2 l1)
+  )
+  (zone
+     (name two_move_rank)
+     (players Black)
+     (positions a11 b10 c9 d8 e7 f6 g6 h6 i6 k6 l6)
+  )
+)
+
+(game
+   (title "Chess")
+   (description "Object: Checkmate the opponent's King by attacking
+	   it so it cannot escape.  To see a description of how a piece moves
+	   right-click on it to bring up its properties dialog.\\
+         Try playing one of the many exciting variants.")
+   (history "Chess is a modern version of an ancient Indian game called Shatranj.  The
+       earliest record of Shatranj is found in a Persian work called
+       Karnamak-i-Artakhshatr-i-Papakan written in about A.D. 600.   The present-day
+       form of chess is a little over 100 years old: according to Hooper and Whyld's
+       `The Oxford Companion to Chess`, en passant capture was universally adopted in
+       1880, although the initial double step for pawns dates from about the 13th
+       century.   The most important changes from Shatranj to Chess, expanded moves for
+       the queen and bishop, date from about 1475.    Castling began sometime in the
+       16th century, but there were many variants of king and rook placement until
+       the modern standard was established.")
+   (strategy "In the opening, try to develop your pieces more than your pawns.  Always
+       protect your King.  Look for ways to exchange lower valued pieces for larger valued
+       ones.  Generally, if a Pawn is worth 1 point, then a Bishop or Knight is worth 3,
+       a Rook is worth 5 and a Queen worth 9 points.")
+   (option "prevent flipping" 2)
+   (win-sound "Audio\Orchestra_CF.wav")
+   (loss-sound "Audio\Orchestra_FC.wav")
+   (click-sound "Audio\Pickup.wav")
+   (release-sound "Audio\WoodThunk.wav")
+   (players White Black)
+   (turn-order White Black)
+   (board (Board-Definitions))
+
+   (board-setup
+      (White
+         (Pawn b5 c5 d5 e5 f5 g4 h3 i2 k1)
+         (Knight d3 h1)
+         (Bishop f1 f2 f3)
+         (Rook c4 i1)
+         (Queen e2)
+         (King g1)
+      )
+      (Black
+         (Pawn b11 c10 d9 e8 f7 g7 h7 i7 k7)
+         (Knight d11 h9)
+         (Bishop f11 f10 f9)
+         (Rook c11 i8)
+         (Queen e11)
+         (King g10)
+      )
+   )
+
+   (piece
+      (name Pawn)
+      (help "Pawn: moves forward, captures diagonally, can promote on 8th row")
+      (description "Pawn\A Pawn can move straight ahead one square, or two squares from
+           its starting position.  A Pawn captures by moving one square ahead and
+           diagonally.  If a Pawn reaches the far rank it promotes, changing into
+           a Knight, Bishop, Rook, or Queen.  On rare occasions Pawns can also execute
+           a move called `En Passant`, or `in passing`.  This allows a Pawn to take
+           an enemy Pawn that has just moved two squares.")
+      (image White "img\wpawn.bmp"
+             Black "img\bpawn.bmp")
+      (moves
+         (Pawn-capture nwS)
+         (Pawn-capture neS)
+         (Pawn-move)
+         (En-Passant seS)
+         (En-Passant swS)
+      )
+   )
+
+   (piece
+      (name Knight)
+	  (help "Knight: moves like an `L`, 2 squares one way and one the other")
+      (description "Knight\A Knight moves like an `L`, two squares vertically plus one
+          horizontally, or two squares horizontally plus one vertically.  It
+          hops over any pieces on the way.")
+      (image White "img\wknight.bmp"
+             Black "img\bknight.bmp")
+      (moves
+	     (leap2 nS neD)
+	     (leap2 nS nwD)
+	     (leap2 sS seD)
+	     (leap2 sS swD)
+	     (leap2 neS neD)
+	     (leap2 neS eD)
+	     (leap2 seS seD)
+	     (leap2 seS eD)
+	     (leap2 nwS nwD)
+	     (leap2 nwS wD)
+	     (leap2 swS swD)
+	     (leap2 swS wD)
+      )
+   )
+
+   (piece
+      (name Bishop)
+	  (help "Bishop: slides diagonally any number of squares")
+      (description "Bishop\A Bishop moves any number of squares on a diagonal.  It may
+           not leap over other pieces.")
+      (image White "img\wbishop.bmp"
+             Black "img\bbishop.bmp")
+      (moves
+         (slide eD)
+         (slide wD)
+         (slide neD)
+         (slide nwD)
+         (slide seD)
+         (slide swD)
+      )
+   )
+
+   (piece
+      (name Rook)
+	  (help "Rook: slides any number of squares along the row or column.")
+      (description "Rook\A Rook moves any number of squares orthogonally on a rank
+           or a file.  It may not leap over other pieces.")
+      (image White "img\wrook.bmp"
+             Black "img\brook.bmp")
+      (moves
+         (slide nS)
+         (slide sS)
+         (slide neS)
+         (slide nwS)
+         (slide seS)
+         (slide swS)
+      )
+   )
+
+   (piece
+      (name Queen)
+	  (help "Queen: can slide any number of squares in any direction")
+      (description "Queen\A Queen moves any number of squares in a straight line.
+          It may not leap over other pieces.")
+      (image White "img\wqueen.bmp"
+             Black "img\bqueen.bmp")
+      (moves
+         (slide nS)
+         (slide sS)
+         (slide neS)
+         (slide nwS)
+         (slide seS)
+         (slide swS)
+         (slide eD)
+         (slide wD)
+         (slide neD)
+         (slide nwD)
+         (slide seD)
+         (slide swD)
+      )
+   )
+
+   (piece
+      (name King)
+	  (help "King: steps 1 square in any direction to a safe square")
+      (description "King\A King can move to any adjacent square, but never to a 
+	      square where it can be captured.  It may not castle in this variant.")
+      (image White "img\wking.bmp"
+             Black "img\bking.bmp")
+      (moves
+         (shift nS)
+         (shift sS)
+         (shift neS)
+         (shift nwS)
+         (shift seS)
+         (shift swS)
+         (shift eD)
+         (shift wD)
+         (shift neD)
+         (shift nwD)
+         (shift seD)
+         (shift swD)
+      )
+   )
+
+   (loss-condition (White Black) (checkmated King) )
+)

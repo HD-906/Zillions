@@ -1,0 +1,164 @@
+; *** Vertical TicTacToe
+; *** Copyright 1998-2002 Zillions Development
+; v.2.0
+
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define split (
+	(verify (and (not-friend? next) (friend? (opposite next)))) swab
+	(if empty? (create dot mean)) (while friend? next) add
+		)
+)
+
+(define split2 (
+		(mark next) (verify (and (friend? next) (friend? (opposite next)) (not-friend? n2))) swab
+		(if empty? (create dot mean)) (while friend? next) cascade next back
+		from swab (while friend? next) next add
+		)
+)
+
+(define pile ( 
+		(verify (not-empty? $1)) ret
+		(set-flag one empty?) next 
+		(set-flag two (and empty? (not-flag? one))) next
+		(set-flag three (and empty? (not-flag? one) (not-flag? two)))
+		(set-flag kill (and (not-flag? one) (not-flag? two) (not-flag? three)))
+		mean $1 cascade flip ret 
+		(set-flag kill (or (flag? kill) (and not-empty? (flag? three)))) 
+		(set-flag Eone empty?) 
+		(if (and empty? (not-flag? kill)) (create checker) flip) next
+		(set-flag kill (or (flag? kill) (and not-empty? (flag? two))))
+		(set-flag Etwo (and empty? (not-flag? Eone))) 
+		(if (and empty? (not-flag? kill) (or (not-flag? one) (flag? Etwo))) (create checker) flip) next
+		(set-flag kill (or (flag? kill) not-empty?)) 
+		(set-flag Ethree (and empty? (not-flag? Eone) (not-flag? Etwo))) 
+		(if (and empty? (not-flag? kill) (or (flag? three) (flag? Ethree) (and (flag? two) (flag? Etwo)))) (create checker) flip)
+		mean 
+		(if (flag? kill) ret capture (capture next) (capture n2) (capture (opposite next)) (capture mean) back create add 
+			else back create add
+		)
+	     )
+)
+
+(define pilef ( 
+		(verify (not-empty? f)) ret
+		(set-flag one empty?) next 
+		(set-flag two (and empty? (not-flag? one))) next
+		(set-flag three (and empty? (not-flag? one) (not-flag? two)))
+		(set-flag kill (and (not-flag? one) (not-flag? two) (not-flag? three)))
+		mean f cascade ret 
+		(set-flag kill (or (flag? kill) (and not-empty? (flag? three)))) 
+		(set-flag Eone empty?) 
+		(if (and empty? (not-flag? kill)) (create checker) ) next
+		(set-flag kill (or (flag? kill) (and not-empty? (flag? two))))
+		(set-flag Etwo (and empty? (not-flag? Eone))) 
+		(if (and empty? (not-flag? kill) (or (not-flag? one) (flag? Etwo))) (create checker) ) next
+		(set-flag kill (or (flag? kill) not-empty?)) 
+		(set-flag Ethree (and empty? (not-flag? Eone) (not-flag? Etwo))) 
+		(if (and empty? (not-flag? kill) (or (flag? three) (flag? Ethree) (and (flag? two) (flag? Etwo)))) (create checker) )
+		mean 
+		(if (flag? kill) ret capture (capture next) (capture n2) (capture (opposite next)) (capture mean) back create add 
+			else back create add
+		)
+	     )
+)
+
+(game
+    (title "Chopstick")
+    (description "Object: Be the first player to get 4 of your pieces in a row,
+          horizontally, vertically, or diagonally.  Moves are made by dropping pieces
+          to the lowest unoccupied space in a column.")
+    (history "Also known as Gravitational TicTacToe and 4-in-a-row, this game has been
+        marketed in a 7x6 version under the name Connect-4.")
+    (strategy "Try to position your checkers to get as many `potential` 4-in-a-rows
+        as possible, and use these threats to prevent your opponent from dropping
+        into as as many columns as you can.    The best opening move for Red on
+        boards with odd numbers of columns is to drop into the central column.\\
+        Victor Allis, a Dutch computer scientist, proved in the late 1980's that Red
+        has a forced win on the 7x6 board.")
+    (option "animate drops" true)
+    (option "animate captures" false)
+    (drop-sound "Audio\\SlideDown.wav")
+    (win-sound "Audio\\Congrats.wav")
+    (loss-sound "Audio\\YouLose.wav")
+    (players Red Black)
+    (turn-order Red Black)
+    (board
+        (image "Chopsticks\Board.bmp")
+        (grid
+ 	   (start-rectangle 35 40 97 102) ; top-left position
+  	   (directions (next -1 0) (n2 0 -1))
+            (dimensions
+                ("a/b" (75 0)) ; columns
+                ("4/3" (0 75)) ; rows
+            )
+        )
+        (grid
+ 	   (start-rectangle 35 286 97 348) ; top-left position
+  	   (directions (next -1 0) (n2 0 1))
+            (dimensions
+                ("a/b" (75 0)) ; columns
+                ("2/1" (0 75)) ; rows
+            )
+        )
+        (grid
+ 	   (start-rectangle 258 286 320 348) ; top-left position
+  	   (directions (next 1 0) (n2 0 1))
+            (dimensions
+                ("c/d" (75 0)) ; columns
+                ("2/1" (0 75)) ; rows
+            )
+        )
+        (grid
+ 	   (start-rectangle 258 40 320 102) ; top-left position
+  	   (directions (next 1 0) (n2 0 -1))
+            (dimensions
+                ("c/d" (75 0)) ; columns
+                ("4/3" (0 75)) ; rows
+            )
+        )
+        (grid
+ 	   (start-rectangle 85 192 121 222) ; top-left position
+  	   (directions (y 0 -1) (yb 0 1))
+            (dimensions
+                ("L/R" (223 0)) ; columns
+                ("1/2" (0 50)) ; rows
+            )
+        )
+        (symmetry Black (y yb))
+        (links next (a3 b4) (d3 c4) (a2 b1) (d2 c1)) 
+        (links mean (a1 L2) (a2 L2) (b1 L2) (b2 L2) (c1 R2) (c2 R2) (d1 R2) (d2 R2)
+		 (a3 L1) (a4 L1) (b3 L1) (b4 L1) (c3 R1) (c4 R1) (d3 R1) (d4 R1)
+        ) 
+        (links swab (a1 c2) (a2 c2) (b1 c2) (b2 c2) (c1 b2) (c2 b2) (d1 b2) (d2 b2)
+		 (a3 c3) (a4 c3) (b3 c3) (b4 c3) (c3 b3) (c4 b3) (d3 b3) (d4 b3)
+        ) 
+        (links x (L2 R1) (R2 L1) (L1 R2) (R1 L2)) 
+        (links f (L1 R1) (R1 L1) (L2 R2) (R2 L2)) 
+        (links ret (L1 a3) (R1 d3) (L2 a2) (R2 d2)) 
+    ) 
+    (piece
+    	(image Red "Chopsticks\red.bmp"
+           Black "Chopsticks\black.bmp")
+    	(name checker)
+        (moves
+            (split) (split2)
+		)
+	)
+    (piece
+    	(image Red "Chopsticks\reddot.bmp"
+           Black "Chopsticks\blackdot.bmp")
+    	(name dot)
+        (moves
+            (pile x) (pile y) (pilef)
+		)
+	)
+    (board-setup
+        (Red (checker b2 c2) (dot L2 R2))
+        (Black (checker b3 c3) (dot L1 R1))
+	)
+   (loss-condition (Red Black) stalemated )
+)

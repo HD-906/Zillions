@@ -1,0 +1,271 @@
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define slide ($1 (while empty? add mark
+               (while (empty? $2) $2 add) back
+               (while (empty? $3) $3 add) back
+			$1) ))
+(define push  ($1 (verify (and (piece? Box) (empty? $1))) mark $1
+		(while (empty? $1) $1 (set-position-flag des true) back capture (while (not-position-flag? des) $1) (set-position-flag des false) (create Box) (opposite $1) add $1)
+))
+(define push1  ($1 (verify (and (piece? Box) (empty? $1))) cascade from $1 add
+))
+;(define 2push  ($1 (verify (and (piece? Box) (empty? $1))) mark $1 (verify (empty? $1)) cascade back from $1 $1 add
+;))
+
+(game
+   (title "1")
+   (option "highlight goals" true)
+   (option "discard cascades" true)
+   (option "progressive levels" true)
+   (option "animate captures" false)
+   (players Player)
+   (turn-order Player)
+   (piece
+      (name Man)
+      (image Player "Man.bmp")
+      (moves
+         (slide n e w)
+         (slide e n s)
+         (slide s e w)
+         (slide w n s)
+         (push n)
+         (push e)
+         (push s)
+         (push w)
+         (push1 n)
+         (push1 e)
+         (push1 s)
+         (push1 w)
+      )
+   )
+   (piece
+     (name Box)
+     (help "Ball: just sits and waits to be pushed!")  
+     (image Player "Door.bmp")
+   )   
+   (piece
+      (name Brick)
+      (help "Brick: you can't move to a position with a Brick on it.")
+      (description "Brick\A Brick is just a barrier in the board.")
+      (image Player "Bricks.bmp")
+   )
+   (board 
+     (image "LargeTour.bmp")
+     (grid
+            (start-rectangle 3 3 25 25)
+            (dimensions
+                ("a/b/c/d/e/f/g" (22 0)) ; columns
+                ("7/6/5/4/3/2/1" (0 22)) ; rows
+            )
+            (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0))
+      )
+   )
+
+   (board-setup
+     (Player
+       (Man d4)
+       (Box c4 c5 d3 e5)
+       (Brick 
+                  b7    d7
+                  b6    d6 e6 f6 g6
+               a5 b5             g5
+                           e4 f4 g4
+               a3 b3 c3    e3
+                     c2    e2
+                     c1 d1 e1)
+     )
+   )
+   (win-condition (Player) (absolute-config Box (a4 c7 d2 f5)))
+   (loss-condition (Player) stalemated )
+   (loss-condition (Player) repetition )
+)
+(variant
+   (title "2")
+   (board 
+     (image "LargeTour.bmp")
+     (grid
+            (start-rectangle 3 3 25 25)
+            (dimensions
+                ("a/b/c/d/e/f/g/h" (22 0)) ; columns
+                ("8/7/6/5/4/3/2/1" (0 22)) ; rows
+            )
+            (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0))
+      )
+   )
+
+   (board-setup
+     (Player
+       (Man c8)
+       (Box b6 b7 c7)
+       (Brick 
+                        d8
+                        d7    f7 g7 h7
+                        d6    f6    h6
+               a5 b5    d5 e5 f5    h5
+               a4 b4                h4
+               a3          e3       h3
+               a2          e2 f2 g2 h2
+               a1 b1 c1 d1 e1)
+     )
+   )
+   (win-condition (Player) (absolute-config Box (g4 g5 g6)))
+   (loss-condition (Player) stalemated )
+   (loss-condition (Player) repetition )
+)
+(variant
+   (title "3")
+   (board 
+     (image "LargeTour.bmp")
+     (grid
+            (start-rectangle 3 3 25 25)
+            (dimensions
+                ("a/b/c/d/e/f/g/h/i" (22 0)) ; columns
+                ("6/5/4/3/2/1" (0 22)) ; rows
+            )
+            (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0))
+      )
+   )
+
+   (board-setup
+     (Player
+       (Man c4)
+       (Box b5 f3 d4 g4)
+       (Brick 
+               a6                g6 h6 i6
+               a5    c5 d5 e5          i5
+                                       i4
+                        d3          h3 i3
+               a2       d2          h2
+               a1 b1 c1 d1 e1 f1 g1 h1)
+     )
+   )
+   (win-condition (Player) (absolute-config Box (b2 b3 c2 c3)))
+   (loss-condition (Player) stalemated )
+   (loss-condition (Player) repetition )
+)
+(variant
+   (title "2-1")
+   (board 
+     (image "LargeTour.bmp")
+     (grid
+            (start-rectangle 3 3 25 25)
+            (dimensions
+                ("a/b/c/d/e" (22 0)) ; columns
+                ("6/5/4/3/2/1" (0 22)) ; rows
+            )
+            (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0))
+      )
+   )
+
+   (board-setup
+     (Player
+       (Man d4)
+       (Box a3 b4 c5)
+       (Brick 
+               a6 b6       e6
+               a5          e5
+                           e4
+                        d3 e3
+                     c2 d2
+               a1 b1 c1)
+     )
+   )
+   (win-condition (Player) (absolute-config Box (a2 b3 a4)))
+   (loss-condition (Player) stalemated )
+   (loss-condition (Player) repetition )
+)
+(variant
+   (title "2-2")
+   (board 
+     (image "LargeTour.bmp")
+     (grid
+            (start-rectangle 3 3 25 25)
+            (dimensions
+                ("a/b/c/d/e" (22 0)) ; columns
+                ("5/4/3/2/1" (0 22)) ; rows
+            )
+            (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0))
+      )
+   )
+
+   (board-setup
+     (Player
+       (Man c4)
+       (Box b4 c3)
+       (Brick 
+                           e5
+                           e4
+                  b3       e3
+                           e2
+               a1 b1 c1 d1 e1)
+     )
+   )
+   (win-condition (Player) (absolute-config Box (b5 d3)))
+   (loss-condition (Player) stalemated )
+   (loss-condition (Player) repetition )
+)
+(variant
+   (title "2-3")
+   (board 
+     (image "LargeTour.bmp")
+     (grid
+            (start-rectangle 3 3 25 25)
+            (dimensions
+                ("a/b/c/d/e" (22 0)) ; columns
+                ("5/4/3/2/1" (0 22)) ; rows
+            )
+            (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0))
+      )
+   )
+
+   (board-setup
+     (Player
+       (Man b5)
+       (Box a3 b4)
+       (Brick 
+                           e5
+                           e4
+                     c3 d3 e3
+                        d2
+               a1 b1 c1 d1)
+     )
+   )
+   (win-condition (Player) (absolute-config Box (a2 c2)))
+   (loss-condition (Player) stalemated )
+   (loss-condition (Player) repetition )
+)
+(variant
+   (title "2-4")
+   (board 
+     (image "LargeTour.bmp")
+     (grid
+            (start-rectangle 3 3 25 25)
+            (dimensions
+                ("a/b/c/d/e/f/g/h" (22 0)) ; columns
+                ("7/6/5/4/3/2/1" (0 22)) ; rows
+            )
+            (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0))
+      )
+   )
+
+   (board-setup
+     (Player
+       (Man d6)
+       (Box e4 e5 e6)
+       (Brick 
+                  b7 c7       f7 g7
+               a6 b6             g6 h6
+                                    h5         
+                        d4          h4
+               a3 b3 c3 d3    f3    h3
+                        d2          h2
+                        d1 e1 f1 g1 h1)
+     )
+   )
+   (win-condition (Player) (absolute-config Box (f4 f5 f6)))
+   (loss-condition (Player) stalemated )
+   (loss-condition (Player) repetition )
+)

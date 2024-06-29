@@ -1,0 +1,229 @@
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define drop 
+		(scan1 ne) (scan1 nw) (scan1 se) (scan1 sw)
+		(scan2 2n) (scan2 2e) (scan2 2s) (scan2 2w) (scan2 2ne) (scan2 2nw) (scan2 2se) (scan2 2sw)
+		(scan3 3n n) (scan3 3e e) (scan3 3s s) (scan3 3w w) (scan3 3ne ne) (scan3 3nw nw) (scan3 3se se) (scan3 3sw sw)
+		(scan4 n) (scan4 e) (scan4 s) (scan4 w)
+		(scan5 n) (scan5 e) (scan5 s) (scan5 w)
+		(scan6 ne) (scan6 nw) (scan6 se) (scan6 sw)
+		(scan7 nne) (scan7 nnw) (scan7 sse) (scan7 ssw) (scan7 nee) (scan7 see) (scan7 nww) (scan7 sww)
+		(scan8 n 2n e w) (scan8 e 2e n s) (scan8 s 2s e w) (scan8 w 2w n s)
+)
+(define scan1
+	(if (and (friend? $1) (or (piece? Star $1) (piece? Wind $1) (piece? Sun $1)) ) add (verify false))
+)
+(define scan2
+	(if (and (friend? $1) (or (piece? Cloud $1) (piece? Rain $1) (piece? Fog $1)) ) add (verify false))
+)
+(define scan3
+	(if (and (friend? $1) (piece? Rain $1) (empty? $2)) add (verify false))
+)
+(define scan4
+	(
+		if (and (not-empty? $1) (on-board? $1)) $1
+			(while (empty? $1) $1)
+			(if (and (friend? $1) (piece? Wind $1)) (go from) add (verify false))
+	)
+	(go from)
+)
+(define scan5
+	(while (empty? $1) $1)
+	(if (and (friend? $1) (or (piece? Moon $1) (piece? Sun $1)) ) (go from) add (verify false))
+	(go from)
+)
+(define scan6
+	(while (empty? $1) $1)
+	(if (and (friend? $1) (piece? Sun $1)) (go from) add (verify false))
+	(go from)
+)
+(define scan7
+	(
+	if (on-board? $1) $1 
+		(
+			if (and friend? (or (piece? Sparrow) (piece? Goose) (piece? Fog))) (go from) add (verify false)
+			else (if (and empty? (friend? $1) (piece? Goose $1)) (go from) add (verify false))
+		) 
+	)
+	(go from)
+)
+(define scan8
+	(
+		if (on-board? $2) $2
+			(while (on-board? $1) (rainbow-check $3 $4) $1)
+		(rainbow-check $3 $4)
+	)
+	(go from)
+)
+(define rainbow-check 
+	(
+		if (and empty? (or (and (friend? $1) (piece? Rainbow $1)) (and (friend? $2) (piece? Rainbow $2)) ) ) (go from) add (verify false)
+	)
+)
+
+(game
+   (title "Universal Chess")
+   (opening-sound "Audio\\REVERSE.wav")
+   (win-sound "Audio\Orchestra_CF.wav")
+   (loss-sound "Audio\Orchestra_FC.wav")
+   (drop-sound "Audio\\Slide.wav")
+   (capture-sound "Audio\\DING.WAV")
+   (players Purple Blue)
+   (turn-order Purple Blue)
+   (option "recycle captures" true)
+
+   (board
+      (image "images\Chess\SHaag\Chess7x7.bmp" "images\Chess\Chess7x7.bmp")
+    (grid
+      (start-rectangle 5 5 53 53)
+      (dimensions
+         ("a/b/c/d/e/f/g" (49 0)) ; files
+         ("7/6/5/4/3/2/1" (0 49)) ; ranks
+      )
+      (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0)
+			     (ne 1 -1) (nw -1 -1) (se 1 1) (sw -1 1)
+			     (nne 1 -2) (nnw -1 -2) (sse 1 2) (ssw -1 2)
+			     (nee 2 -1) (nww -2 -1) (see 2 1) (sww -2 1)
+			     (2n 0 -2) (2e 2 0) (2s 0 2) (2w -2 0)
+			     (2ne 2 -2) (2nw -2 -2) (2se 2 2) (2sw -2 2)
+			     (3n 0 -3) (3e 3 0) (3s 0 3) (3w -3 0)
+			     (3ne 3 -3) (3nw -3 -3) (3se 3 3) (3sw -3 3)
+		(next 0 -1)
+      )
+    )
+      (links next (a7 b1) (b7 c1) (c7 d1) (d7 e1) (e7 f1) (f7 g1)
+      )
+   )
+
+   (board-setup
+      (Purple
+         (Star off 7)
+         (Moon off 1)
+         (Sun off 1)
+         (Sparrow off 2)
+         (Goose off 1)
+         (Cloud off 2)
+         (Rain off 1)
+         (Rainbow off 1)
+         (Fog off 1)
+         (Wind off 1)
+      )
+      (Blue
+         (Star off 7)
+         (Moon off 1)
+         (Sun off 1)
+         (Sparrow off 2)
+         (Goose off 1)
+         (Cloud off 2)
+         (Rain off 1)
+         (Rainbow off 1)
+         (Fog off 1)
+         (Wind off 1)
+      )
+   )
+   (move-priorities controlled-drop)
+
+   (piece
+      (name Star)
+      (image Purple "PStar.bmp" Blue "BStar.bmp")
+      (drops
+             ((verify (or empty? (piece? Sun))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Sun))) (drop))
+      )
+   )
+   (piece
+      (name Sun)
+      (image Purple "PSun.bmp" Blue "BSun.bmp")
+      (drops
+             ((verify (and (not-piece? Sun) (not-piece? Star))) add)
+       (move-type controlled-drop)
+             ((verify (and (not-piece? Sun) (not-piece? Star))) (drop))
+      )
+   )
+   (piece
+      (name Moon)
+      (image Purple "PMoon.bmp" Blue "BMoon.bmp")
+      (drops
+             ((verify (or empty? (piece? Star))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star))) (drop))
+      )
+   )
+   (piece
+      (name Sparrow)
+      (image Purple "PSparrow.bmp" Blue "BSparrow.bmp")
+      (drops
+             ((verify (or empty? (piece? Star))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star))) (drop))
+      )
+   )
+   (piece
+      (name Goose)
+      (image Purple "PGoose.bmp" Blue "BGoose.bmp")
+      (drops
+             ((verify (or empty? (piece? Star) (piece? Sparrow))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star) (piece? Sparrow))) (drop))
+      )
+   )
+   (piece
+      (name Cloud)
+      (image Purple "PCloud.bmp" Blue "BCloud.bmp")
+      (drops
+             ((verify (or empty? (piece? Star))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star))) (drop))
+      )
+   )
+   (piece
+      (name Rain)
+      (image Purple "PRain.bmp" Blue "BRain.bmp")
+      (drops
+             ((verify (or empty? (piece? Star) (piece? Cloud))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star) (piece? Cloud))) (drop))
+      )
+   )
+   (piece
+      (name Rainbow)
+      (image Purple "PRainbow.bmp" Blue "BRainbow.bmp")
+      (drops
+             ((verify (or empty? (piece? Star) (piece? Rain))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star) (piece? Rain))) (drop))
+      )
+   )
+   (piece
+      (name Fog)
+      (image Purple "PFog.bmp" Blue "BFog.bmp")
+      (drops
+             ((verify (or empty? (piece? Star))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star))) (drop))
+      )
+   )
+   (piece
+      (name Wind)
+      (image Purple "PWind.bmp" Blue "BWind.bmp")
+      (drops
+             ((verify (or empty? (piece? Star) (piece? Cloud) (piece? Fog))) add)
+       (move-type controlled-drop)
+             ((verify (or empty? (piece? Star) (piece? Cloud) (piece? Fog))) (drop))
+      )
+   )
+   (win-condition (Purple Blue) (pieces-remaining 18) )
+   (loss-condition (Purple Blue) repetition )
+   (loss-condition (Purple Blue) stalemated )
+)
+
+; **************************************************************************
+; VARIANTS
+; **************************************************************************
+(variant
+   (title "-") ; --------------------------------------------------------
+)

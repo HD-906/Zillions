@@ -1,0 +1,114 @@
+; *** Vertical TicTacToe
+; *** Copyright 1998-2002 Zillions Development
+; v.2.0
+
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define pile ( $1 (verify (not-empty? $2)) (while not-empty? $3) (capture v) (flip $2) add) )
+
+(define grav ( (verify (and (empty? v) (empty? $1))) $1 cascade flip k (scan $2 $3 $4) (create X v) (go from) $1 add) )
+
+(define scan (while (on-board? $3) (fall $1 $2) $3)
+		(fall $1 $2)
+)
+
+(define fall   (while (and not-empty? (on-board? $1)) $1)
+		mark (set-flag settled not-empty?)
+		(while (and empty? (on-board? $1)) $1)
+		(set-flag settled (or empty? (flag? settled)))
+		(while (not-flag? settled) (set-position-flag fallen true) (verify not-empty?) from back cascade $1 mark
+			(while (and (or empty? (position-flag? fallen)) (on-board? $1)) $1)
+			(set-flag settled (or empty? (position-flag? fallen)))
+		) $2
+)
+
+(define common-arrow-stuff
+    (image Red "Gravity_TicTacToe\GreenBulb.bmp"
+           Black "Gravity_TicTacToe\GreenBulb.bmp")
+    (name arrow)
+	(help "Arrow: defines current gravity direction")
+)
+(define common-dummy-stuff
+    (image Red "Gravity_TicTacToe\RedBulb.bmp"
+           Black "Gravity_TicTacToe\RedBulb.bmp")
+    (name X)
+	(help "Not able to change gravity")
+)
+
+(game
+    (title "Chopstick")
+    (description "Object: Be the first player to get 4 of your pieces in a row,
+          horizontally, vertically, or diagonally.  Moves are made by dropping pieces
+          to the lowest unoccupied space in a column.")
+    (history "Also known as Gravitational TicTacToe and 4-in-a-row, this game has been
+        marketed in a 7x6 version under the name Connect-4.")
+    (strategy "Try to position your checkers to get as many `potential` 4-in-a-rows
+        as possible, and use these threats to prevent your opponent from dropping
+        into as as many columns as you can.    The best opening move for Red on
+        boards with odd numbers of columns is to drop into the central column.\\
+        Victor Allis, a Dutch computer scientist, proved in the late 1980's that Red
+        has a forced win on the 7x6 board.")
+    (option "animate drops" true)
+    (option "animate captures" false)
+    (option "discard cascades" true)
+    (drop-sound "Audio\\SlideDown.wav")
+    (win-sound "Audio\\Congrats.wav")
+    (loss-sound "Audio\\YouLose.wav")
+    (players Red Black)
+    (turn-order Red Black)
+    (board
+        (image "Chopstick\Board.bmp")
+        (grid
+ 	   (start-rectangle 35 40 97 102) ; top-left position
+  	   (directions (n 0 -1) (e 1 0) (w -1 0) (ne 1 -1) (nw -1 -1) (s 0 1)
+		(nn 0 -8) (ee 8 0) (ww -8 0) (ss 0 8)
+  	   )
+            (dimensions
+                ("a/b/c/d" (45 0)) ; columns
+                ("4/3/2/1" (0 45)) ; rows
+            )
+        )
+        ;(links) 
+    ) 
+    (piece
+        
+    	(image Red "Chopsticks\red.bmp"
+           Black "Chopsticks\black.bmp")
+    	(name checker)
+	(help "Checker: drops to bottom of any column")
+        (drops
+            (pile a1 D n) (pile b1 D n) (pile c1 D n) (pile d1 D n) (pile e1 D n) (pile f1 D n) (pile g1 D n) (pile h1 D n) (pile i1 D n)
+            (pile a1 L e) (pile a2 L e) (pile a3 L e) (pile a4 L e) (pile a5 L e) (pile a6 L e) (pile a7 L e) (pile a8 L e) (pile a9 L e)
+            (pile a9 U s) (pile b9 U s) (pile c9 U s) (pile d9 U s) (pile e9 U s) (pile f9 U s) (pile g9 U s) (pile h9 U s) (pile i9 U s)
+            (pile i1 R w) (pile i2 R w) (pile i3 R w) (pile i4 R w) (pile i5 R w) (pile i6 R w) (pile i7 R w) (pile i8 R w) (pile i9 R w)
+		)
+	)
+    (piece
+        (common-arrow-stuff)
+        (moves
+            (grav U s nn e)
+            (grav L e ww n)
+            (grav D n ss w)
+            (grav R w ee s)
+		)
+	)
+    (piece
+        (common-dummy-stuff)
+	)
+    (board-setup
+        (Red (checker off 99)
+             (arrow D)
+             (X v))
+        (Black (checker off 99))
+	)
+    (win-condition (Red Black)
+	  (or (relative-config (not checker) n checker n checker n checker n checker n (not checker))
+          (relative-config (not checker) e checker e checker e checker e checker e (not checker))
+          (relative-config (not checker) ne checker ne checker ne checker ne checker ne (not checker))
+          (relative-config (not checker) nw checker nw checker nw checker nw checker nw (not checker))
+	  )
+	)
+)

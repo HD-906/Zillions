@@ -1,0 +1,562 @@
+; *** Chess
+; *** Copyright 1998-2002 Zillions Development
+; v.2.0
+
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define shift        ($1    (verify not-friend?) add) )
+(define leap2        ($1 $2 (verify not-friend?) add) )
+(define slide        ($1 (while empty? add $1) (verify not-friend?) add))
+
+(define Pawn-add
+   (if (in-zone? promotion-zone) (add Knight Bishop Rook Queen) else add)
+)
+(define Pawn-move
+   (
+      m
+      (verify empty?)
+      (Pawn-add)
+      (verify (in-zone? two_move_rank))
+      m
+      (verify empty?)
+      add
+   )
+)
+(define Pawn-capture
+   (
+      $1
+      (verify enemy?)
+      (Pawn-add)
+   )
+)
+(define En-Passant
+   (
+      $1
+      (verify enemy?)
+      (verify last-to?)
+      (verify (piece? Pawn))
+      capture
+      m
+      to
+      m
+      (verify last-from?)
+      add
+   )
+)
+
+(define Board-Definitions
+  (image "img\Circular_chess.bmp")
+  (positions
+     (ea1 350 471 398 519)
+     (ea2 359 525 407 573)
+     (ea3 368 580 416 628)
+     (ea4 377 634 425 682)
+     
+     (eb1 405 450 453 498)
+     (eb2 435 496 483 544)
+     (eb3 464 543 512 591)
+     (eb4 494 589 542 637)
+     
+     (ec1 448 408 496 456)
+     (ec2 494 438 542 486)
+     (ec3 540 469 588 517)
+     (ec4 585 499 633 547)
+     
+     (ed1 470 352 518 400)
+     (ed2 524 361 572 409)
+     (ed3 578 371 626 419)
+     (ed4 633 380 681 428)
+     
+     (ee1 470 302 518 350)
+     (ee2 524 293 572 341)
+     (ee3 578 283 626 331)
+     (ee4 633 274 681 322)
+     
+     (ef1 448 246 496 294)
+     (ef2 494 216 542 264)
+     (ef3 540 185 588 233)
+     (ef4 585 155 633 203)
+     
+     (eg1 405 204 453 252)
+     (eg2 435 158 483 206)
+     (eg3 464 111 512 159)
+     (eg4 494  65 542 113)
+     
+     (eh1 350 183 398 231)
+     (eh2 359 129 407 177)
+     (eh3 368  74 416 122)
+     (eh4 377  20 425  68)
+     
+     (wa1 302 471 350 519)
+     (wa2 293 525 341 573)
+     (wa3 284 580 332 628)
+     (wa4 275 634 323 682)
+     
+     (wb1 247 450 295 498)
+     (wb2 217 496 265 544)
+     (wb3 188 543 236 591)
+     (wb4 158 589 206 637)
+     
+     (wc1 204 408 252 456)
+     (wc2 158 438 206 486)
+     (wc3 112 469 160 517)
+     (wc4  67 499 115 547)
+     
+     (wd1 182 352 230 400)
+     (wd2 128 361 176 409)
+     (wd3  74 371 122 419)
+     (wd4  19 380  67 428)
+     
+     (we1 182 302 230 350)
+     (we2 128 293 176 341)
+     (we3  74 283 122 331)
+     (we4  19 274  67 322)
+     
+     (wf1 204 246 252 294)
+     (wf2 158 216 206 264)
+     (wf3 112 185 160 233)
+     (wf4  67 155 115 203)
+     
+     (wg1 247 204 295 252)
+     (wg2 217 158 265 206)
+     (wg3 188 111 236 159)
+     (wg4 158  65 206 113)
+     
+     (wh1 302 183 350 231)
+     (wh2 293 129 341 177)
+     (wh3 284  74 332 122)
+     (wh4 275  20 323  68)
+  )
+  (links e
+     (ea1 ea2) (ea2 ea3) (ea3 ea4)
+     (eb1 eb2) (eb2 eb3) (eb3 eb4)
+     (ec1 ec2) (ec2 ec3) (ec3 ec4)
+     (ed1 ed2) (ed2 ed3) (ed3 ed4)
+     (ee1 ee2) (ee2 ee3) (ee3 ee4)
+     (ef1 ef2) (ef2 ef3) (ef3 ef4)
+     (eg1 eg2) (eg2 eg3) (eg3 eg4)
+     (eh1 eh2) (eh2 eh3) (eh3 eh4)
+     
+     (wa1 wa2) (wa2 wa3) (wa3 wa4)
+     (wb1 wb2) (wb2 wb3) (wb3 wb4)
+     (wc1 wc2) (wc2 wc3) (wc3 wc4)
+     (wd1 wd2) (wd2 wd3) (wd3 wd4)
+     (we1 we2) (we2 we3) (we3 we4)
+     (wf1 wf2) (wf2 wf3) (wf3 wf4)
+     (wg1 wg2) (wg2 wg3) (wg3 wg4)
+     (wh1 wh2) (wh2 wh3) (wh3 wh4)
+  )
+  
+  (links w
+     (ea4 ea3) (ea3 ea2) (ea2 ea1)
+     (eb4 eb3) (eb3 eb2) (eb2 eb1)
+     (ec4 ec3) (ec3 ec2) (ec2 ec1)
+     (ed4 ed3) (ed3 ed2) (ed2 ed1)
+     (ee4 ee3) (ee3 ee2) (ee2 ee1)
+     (ef4 ef3) (ef3 ef2) (ef2 ef1)
+     (eg4 eg3) (eg3 eg2) (eg2 eg1)
+     (eh4 eh3) (eh3 eh2) (eh2 eh1)
+     
+     (wa4 wa3) (wa3 wa2) (wa2 wa1)
+     (wb4 wb3) (wb3 wb2) (wb2 wb1)
+     (wc4 wc3) (wc3 wc2) (wc2 wc1)
+     (wd4 wd3) (wd3 wd2) (wd2 wd1)
+     (we4 we3) (we3 we2) (we2 we1)
+     (wf4 wf3) (wf3 wf2) (wf2 wf1)
+     (wg4 wg3) (wg3 wg2) (wg2 wg1)
+     (wh4 wh3) (wh3 wh2) (wh2 wh1)
+  )
+  
+  (links n
+     (ea1 eb1) (eb1 ec1) (ec1 ed1) (ed1 ee1) (ee1 ef1) (ef1 eg1) (eg1 eh1) (eh1 wh1)
+     (wh1 wg1) (wg1 wf1) (wf1 we1) (we1 wd1) (wd1 wc1) (wc1 wb1) (wb1 wa1) (wa1 ea1)
+     
+     (ea2 eb2) (eb2 ec2) (ec2 ed2) (ed2 ee2) (ee2 ef2) (ef2 eg2) (eg2 eh2) (eh2 wh2)
+     (wh2 wg2) (wg2 wf2) (wf2 we2) (we2 wd2) (wd2 wc2) (wc2 wb2) (wb2 wa2) (wa2 ea2)
+     
+     (ea3 eb3) (eb3 ec3) (ec3 ed3) (ed3 ee3) (ee3 ef3) (ef3 eg3) (eg3 eh3) (eh3 wh3)
+     (wh3 wg3) (wg3 wf3) (wf3 we3) (we3 wd3) (wd3 wc3) (wc3 wb3) (wb3 wa3) (wa3 ea3)
+     
+     (ea4 eb4) (eb4 ec4) (ec4 ed4) (ed4 ee4) (ee4 ef4) (ef4 eg4) (eg4 eh4) (eh4 wh4)
+     (wh4 wg4) (wg4 wf4) (wf4 we4) (we4 wd4) (wd4 wc4) (wc4 wb4) (wb4 wa4) (wa4 ea4)
+  )
+  
+  (links s
+     (wa1 wb1) (wb1 wc1) (wc1 wd1) (wd1 we1) (we1 wf1) (wf1 wg1) (wg1 wh1) (wh1 eh1)
+     (eh1 eg1) (eg1 ef1) (ef1 ee1) (ee1 ed1) (ed1 ec1) (ec1 eb1) (eb1 ea1) (ea1 wa1)
+     
+     (wa2 wb2) (wb2 wc2) (wc2 wd2) (wd2 we2) (we2 wf2) (wf2 wg2) (wg2 wh2) (wh2 eh2)
+     (eh2 eg2) (eg2 ef2) (ef2 ee2) (ee2 ed2) (ed2 ec2) (ec2 eb2) (eb2 ea2) (ea2 wa2)
+     
+     (wa3 wb3) (wb3 wc3) (wc3 wd3) (wd3 we3) (we3 wf3) (wf3 wg3) (wg3 wh3) (wh3 eh3)
+     (eh3 eg3) (eg3 ef3) (ef3 ee3) (ee3 ed3) (ed3 ec3) (ec3 eb3) (eb3 ea3) (ea3 wa3)
+     
+     (wa4 wb4) (wb4 wc4) (wc4 wd4) (wd4 we4) (we4 wf4) (wf4 wg4) (wg4 wh4) (wh4 eh4)
+     (eh4 eg4) (eg4 ef4) (ef4 ee4) (ee4 ed4) (ed4 ec4) (ec4 eb4) (eb4 ea4) (ea4 wa4)
+  )
+  
+  (links ne
+     (ea1 eb2) (ea2 eb3) (ea3 eb4)
+     (eb1 ec2) (eb2 ec3) (eb3 ec4)
+     (ec1 ed2) (ec2 ed3) (ec3 ed4)
+     (ed1 ee2) (ed2 ee3) (ed3 ee4)
+     (ee1 ef2) (ee2 ef3) (ee3 ef4)
+     (ef1 eg2) (ef2 eg3) (ef3 eg4)
+     (eg1 eh2) (eg2 eh3) (eg3 eh4)
+     (eh1 wh2) (eh2 wh3) (eh3 wh4)
+     
+     (wa1 ea2) (wa2 ea3) (wa3 ea4)
+     (wb1 wa2) (wb2 wa3) (wb3 wa4)
+     (wc1 wb2) (wc2 wb3) (wc3 wb4)
+     (wd1 wc2) (wd2 wc3) (wd3 wc4)
+     (we1 wd2) (we2 wd3) (we3 wd4)
+     (wf1 we2) (wf2 we3) (wf3 we4)
+     (wg1 wf2) (wg2 wf3) (wg3 wf4)
+     (wh1 wg2) (wh2 wg3) (wh3 wg4)
+  )
+  
+  (links nw
+     (ea4 eb3) (ea3 eb2) (ea2 eb1)
+     (eb4 ec3) (eb3 ec2) (eb2 ec1)
+     (ec4 ed3) (ec3 ed2) (ec2 ed1)
+     (ed4 ee3) (ed3 ee2) (ed2 ee1)
+     (ee4 ef3) (ee3 ef2) (ee2 ef1)
+     (ef4 eg3) (ef3 eg2) (ef2 eg1)
+     (eg4 eh3) (eg3 eh2) (eg2 eh1)
+     (eh4 wh3) (eh3 wh2) (eh2 wh1)
+     
+     (wa4 ea3) (wa3 ea2) (wa2 ea1)
+     (wb4 wa3) (wb3 wa2) (wb2 wa1)
+     (wc4 wb3) (wc3 wb2) (wc2 wb1)
+     (wd4 wc3) (wd3 wc2) (wd2 wc1)
+     (we4 wd3) (we3 wd2) (we2 wd1)
+     (wf4 we3) (wf3 we2) (wf2 we1)
+     (wg4 wf3) (wg3 wf2) (wg2 wf1)
+     (wh4 wg3) (wh3 wg2) (wh2 wg1)
+  )
+  
+  (links se
+     (ea1 wa2) (ea2 wa3) (ea3 wa4)
+     (eb1 ea2) (eb2 ea3) (eb3 ea4)
+     (ec1 eb2) (ec2 eb3) (ec3 eb4)
+     (ed1 ec2) (ed2 ec3) (ed3 ec4)
+     (ee1 ed2) (ee2 ed3) (ee3 ed4)
+     (ef1 ee2) (ef2 ee3) (ef3 ee4)
+     (eg1 ef2) (eg2 ef3) (eg3 ef4)
+     (eh1 eg2) (eh2 eg3) (eh3 eg4)
+     
+     (wa1 wb2) (wa2 wb3) (wa3 wb4)
+     (wb1 wc2) (wb2 wc3) (wb3 wc4)
+     (wc1 wd2) (wc2 wd3) (wc3 wd4)
+     (wd1 we2) (wd2 we3) (wd3 we4)
+     (we1 wf2) (we2 wf3) (we3 wf4)
+     (wf1 wg2) (wf2 wg3) (wf3 wg4)
+     (wg1 wh2) (wg2 wh3) (wg3 wh4)
+     (wh1 eh2) (wh2 eh3) (wh3 eh4)
+  )
+  
+  (links sw
+     (ea4 wa3) (ea3 wa2) (ea2 wa1)
+     (eb4 ea3) (eb3 ea2) (eb2 ea1)
+     (ec4 eb3) (ec3 eb2) (ec2 eb1)
+     (ed4 ec3) (ed3 ec2) (ed2 ec1)
+     (ee4 ed3) (ee3 ed2) (ee2 ed1)
+     (ef4 ee3) (ef3 ee2) (ef2 ee1)
+     (eg4 ef3) (eg3 ef2) (eg2 ef1)
+     (eh4 eg3) (eh3 eg2) (eh2 eg1)
+     
+     (wa4 wb3) (wa3 wb2) (wa2 wb1)
+     (wb4 wc3) (wb3 wc2) (wb2 wc1)
+     (wc4 wd3) (wc3 wd2) (wc2 wd1)
+     (wd4 we3) (wd3 we2) (wd2 we1)
+     (we4 wf3) (we3 wf2) (we2 wf1)
+     (wf4 wg3) (wf3 wg2) (wf2 wg1)
+     (wg4 wh3) (wg3 wh2) (wg2 wh1)
+     (wh4 eh3) (wh3 eh2) (wh2 eh1)
+  )
+  
+  (links m
+     (ea1 eb1) (eb1 ec1) (ec1 ed1) (ed1 ee1) (ee1 ef1) (ef1 eg1) (eg1 eh1)
+     (wa1 wb1) (wb1 wc1) (wc1 wd1) (wd1 we1) (we1 wf1) (wf1 wg1) (wg1 wh1)
+     
+     (ea2 eb2) (eb2 ec2) (ec2 ed2) (ed2 ee2) (ee2 ef2) (ef2 eg2) (eg2 eh2)
+     (wa2 wb2) (wb2 wc2) (wc2 wd2) (wd2 we2) (we2 wf2) (wf2 wg2) (wg2 wh2)
+     
+     (ea3 eb3) (eb3 ec3) (ec3 ed3) (ed3 ee3) (ee3 ef3) (ef3 eg3) (eg3 eh3)
+     (wa3 wb3) (wb3 wc3) (wc3 wd3) (wd3 we3) (we3 wf3) (wf3 wg3) (wg3 wh3)
+     
+     (ea4 eb4) (eb4 ec4) (ec4 ed4) (ed4 ee4) (ee4 ef4) (ef4 eg4) (eg4 eh4)
+     (wa4 wb4) (wb4 wc4) (wc4 wd4) (wd4 we4) (we4 wf4) (wf4 wg4) (wg4 wh4)
+  )
+  
+  (links r
+     (eh1 eg1) (eg1 ef1) (ef1 ee1) (ee1 ed1) (ed1 ec1) (ec1 eb1) (eb1 ea1)
+     (wh1 wg1) (wg1 wf1) (wf1 we1) (we1 wd1) (wd1 wc1) (wc1 wb1) (wb1 wa1)
+     
+     (eh2 eg2) (eg2 ef2) (ef2 ee2) (ee2 ed2) (ed2 ec2) (ec2 eb2) (eb2 ea2)
+     (wh2 wg2) (wg2 wf2) (wf2 we2) (we2 wd2) (wd2 wc2) (wc2 wb2) (wb2 wa2)
+     
+     (eh3 eg3) (eg3 ef3) (ef3 ee3) (ee3 ed3) (ed3 ec3) (ec3 eb3) (eb3 ea3)
+     (wh3 wg3) (wg3 wf3) (wf3 we3) (we3 wd3) (wd3 wc3) (wc3 wb3) (wb3 wa3)
+     
+     (eh4 eg4) (eg4 ef4) (ef4 ee4) (ee4 ed4) (ed4 ec4) (ec4 eb4) (eb4 ea4)
+     (wh4 wg4) (wg4 wf4) (wf4 we4) (we4 wd4) (wd4 wc4) (wc4 wb4) (wb4 wa4)
+  )
+  
+  (links me
+     (ea1 eb2) (ea2 eb3) (ea3 eb4)
+     (eb1 ec2) (eb2 ec3) (eb3 ec4)
+     (ec1 ed2) (ec2 ed3) (ec3 ed4)
+     (ed1 ee2) (ed2 ee3) (ed3 ee4)
+     (ee1 ef2) (ee2 ef3) (ee3 ef4)
+     (ef1 eg2) (ef2 eg3) (ef3 eg4)
+     (eg1 eh2) (eg2 eh3) (eg3 eh4)
+     
+     (wa1 wb2) (wa2 wb3) (wa3 wb4)
+     (wb1 wc2) (wb2 wc3) (wb3 wc4)
+     (wc1 wd2) (wc2 wd3) (wc3 wd4)
+     (wd1 we2) (wd2 we3) (wd3 we4)
+     (we1 wf2) (we2 wf3) (we3 wf4)
+     (wf1 wg2) (wf2 wg3) (wf3 wg4)
+     (wg1 wh2) (wg2 wh3) (wg3 wh4)
+  )
+  
+  (links re
+     (eb1 ea2) (eb2 ea3) (eb3 ea4)
+     (ec1 eb2) (ec2 eb3) (ec3 eb4)
+     (ed1 ec2) (ed2 ec3) (ed3 ec4)
+     (ee1 ed2) (ee2 ed3) (ee3 ed4)
+     (ef1 ee2) (ef2 ee3) (ef3 ee4)
+     (eg1 ef2) (eg2 ef3) (eg3 ef4)
+     (eh1 eg2) (eh2 eg3) (eh3 eg4)
+     
+     (wb1 wa2) (wb2 wa3) (wb3 wa4)
+     (wc1 wb2) (wc2 wb3) (wc3 wb4)
+     (wd1 wc2) (wd2 wc3) (wd3 wc4)
+     (we1 wd2) (we2 wd3) (we3 wd4)
+     (wf1 we2) (wf2 we3) (wf3 we4)
+     (wg1 wf2) (wg2 wf3) (wg3 wf4)
+     (wh1 wg2) (wh2 wg3) (wh3 wg4)
+  )
+  
+  (links mw
+     (ea4 eb3) (ea3 eb2) (ea2 eb1)
+     (eb4 ec3) (eb3 ec2) (eb2 ec1)
+     (ec4 ed3) (ec3 ed2) (ec2 ed1)
+     (ed4 ee3) (ed3 ee2) (ed2 ee1)
+     (ee4 ef3) (ee3 ef2) (ee2 ef1)
+     (ef4 eg3) (ef3 eg2) (ef2 eg1)
+     (eg4 eh3) (eg3 eh2) (eg2 eh1)
+     
+     (wa4 wb3) (wa3 wb2) (wa2 wb1)
+     (wb4 wc3) (wb3 wc2) (wb2 wc1)
+     (wc4 wd3) (wc3 wd2) (wc2 wd1)
+     (wd4 we3) (wd3 we2) (wd2 we1)
+     (we4 wf3) (we3 wf2) (we2 wf1)
+     (wf4 wg3) (wf3 wg2) (wf2 wg1)
+     (wg4 wh3) (wg3 wh2) (wg2 wh1)
+  )
+  
+  (links rw
+     (eb4 ea3) (eb3 ea2) (eb2 ea1)
+     (ec4 eb3) (ec3 eb2) (ec2 eb1)
+     (ed4 ec3) (ed3 ec2) (ed2 ec1)
+     (ee4 ed3) (ee3 ed2) (ee2 ed1)
+     (ef4 ee3) (ef3 ee2) (ef2 ee1)
+     (eg4 ef3) (eg3 ef2) (eg2 ef1)
+     (eh4 eg3) (eh3 eg2) (eh2 eg1)
+     
+     (wb4 wa3) (wb3 wa2) (wb2 wa1)
+     (wc4 wb3) (wc3 wb2) (wc2 wb1)
+     (wd4 wc3) (wd3 wc2) (wd2 wc1)
+     (we4 wd3) (we3 wd2) (we2 wd1)
+     (wf4 we3) (wf3 we2) (wf2 we1)
+     (wg4 wf3) (wg3 wf2) (wg2 wf1)
+     (wh4 wg3) (wh3 wg2) (wh2 wg1)
+  )
+  
+  (symmetry Black (m r)(r m) (me re)(re me) (mw rw)(rw mw))
+  
+  (zone
+     (name promotion-zone)
+     (players White)
+     (positions eh1 eh2 eh3 eh4 wh1 wh2 wh3 wh4)
+  )
+  (zone
+     (name promotion-zone)
+     (players Black)
+     (positions ea1 ea2 ea3 ea4 wa1 wa2 wa3 wa4)
+  )
+  (zone
+     (name two_move_rank)
+     (players White)
+     (positions ec1 ec2 ec3 ec4 wc1 wc2 wc3 wc4)
+  )
+  (zone
+     (name two_move_rank)
+     (players Black)
+     (positions ef1 ef2 ef3 ef4 wf1 wf2 wf3 wf4)
+  )
+)
+
+(game
+   (title "Chess")
+   (description "Object: Checkmate the opponent's King by attacking
+	   it so it cannot escape.  To see a description of how a piece moves
+	   right-click on it to bring up its properties dialog.\\
+         Try playing one of the many exciting variants.")
+   (history "Chess is a modern version of an ancient Indian game called Shatranj.  The
+       earliest record of Shatranj is found in a Persian work called
+       Karnamak-i-Artakhshatr-i-Papakan written in about A.D. 600.   The present-day
+       form of chess is a little over 100 years old: according to Hooper and Whyld's
+       `The Oxford Companion to Chess`, en passant capture was universally adopted in
+       1880, although the initial double step for pawns dates from about the 13th
+       century.   The most important changes from Shatranj to Chess, expanded moves for
+       the queen and bishop, date from about 1475.    Castling began sometime in the
+       16th century, but there were many variants of king and rook placement until
+       the modern standard was established.")
+   (strategy "In the opening, try to develop your pieces more than your pawns.  Always
+       protect your King.  Look for ways to exchange lower valued pieces for larger valued
+       ones.  Generally, if a Pawn is worth 1 point, then a Bishop or Knight is worth 3,
+       a Rook is worth 5 and a Queen worth 9 points.")
+   (option "prevent flipping" 2)
+   (win-sound "Audio\Orchestra_CF.wav")
+   (loss-sound "Audio\Orchestra_FC.wav")
+   (click-sound "Audio\Pickup.wav")
+   (release-sound "Audio\WoodThunk.wav")
+   (players White Black)
+   (turn-order White Black)
+   (board (Board-Definitions))
+
+   (board-setup
+      (White
+         (Pawn eb1 eb2 eb3 eb4 wb1 wb2 wb3 wb4)
+         (Knight ea3 wa3)
+         (Bishop ea2 wa2)
+         (Rook ea4 wa4)
+         (Queen ea1)
+         (King wa1)
+      )
+      (Black
+         (Pawn eg1 eg2 eg3 eg4 wg1 wg2 wg3 wg4)
+         (Knight eh3 wh3)
+         (Bishop eh2 wh2)
+         (Rook eh4 wh4)
+         (Queen eh1)
+         (King wh1)
+      )
+   )
+
+   (piece
+      (name Pawn)
+      (help "Pawn: moves forward, captures diagonally, can promote on 8th row")
+      (description "Pawn\A Pawn can move straight ahead one square, or two squares from
+           its starting position.  A Pawn captures by moving one square ahead and
+           diagonally.  If a Pawn reaches the far rank it promotes, changing into
+           a Knight, Bishop, Rook, or Queen.  On rare occasions Pawns can also execute
+           a move called `En Passant`, or `in passing`.  This allows a Pawn to take
+           an enemy Pawn that has just moved two squares.")
+      (image White "img\wpawn.bmp"
+             Black "img\bpawn.bmp")
+      (moves
+         (Pawn-capture me)
+         (Pawn-capture mw)
+         (Pawn-move)
+         (En-Passant e)
+         (En-Passant w)
+      )
+   )
+
+   (piece
+      (name Knight)
+	  (help "Knight: moves like an `L`, 2 squares one way and one the other")
+      (description "Knight\A Knight moves like an `L`, two squares vertically plus one
+          horizontally, or two squares horizontally plus one vertically.  It
+          hops over any pieces on the way.")
+      (image White "img\wknight.bmp"
+             Black "img\bknight.bmp")
+      (moves
+	     (leap2 n ne)
+	     (leap2 n nw)
+	     (leap2 s se)
+	     (leap2 s sw)
+	     (leap2 e ne)
+	     (leap2 e se)
+	     (leap2 w nw)
+	     (leap2 w sw)
+      )
+   )
+
+   (piece
+      (name Bishop)
+	  (help "Bishop: slides diagonally any number of squares")
+      (description "Bishop\A Bishop moves any number of squares on a diagonal.  It may
+           not leap over other pieces.")
+      (image White "img\wbishop.bmp"
+             Black "img\bbishop.bmp")
+      (moves
+         (slide ne)
+         (slide nw)
+         (slide se)
+         (slide sw)
+      )
+   )
+
+   (piece
+      (name Rook)
+	  (help "Rook: slides any number of squares along the row or column.")
+      (description "Rook\A Rook moves any number of squares orthogonally on a rank
+           or a file.  It may not leap over other pieces.")
+      (image White "img\wrook.bmp"
+             Black "img\brook.bmp")
+      (moves
+         (slide n)
+         (slide s)
+         (slide e)
+         (slide w)
+      )
+   )
+
+   (piece
+      (name Queen)
+	  (help "Queen: can slide any number of squares in any direction")
+      (description "Queen\A Queen moves any number of squares in a straight line.
+          It may not leap over other pieces.")
+      (image White "img\wqueen.bmp"
+             Black "img\bqueen.bmp")
+      (moves
+         (slide n)
+         (slide s)
+         (slide e)
+         (slide w)
+         (slide ne)
+         (slide nw)
+         (slide se)
+         (slide sw)
+      )
+   )
+
+   (piece
+      (name King)
+	  (help "King: steps 1 square in any direction to a safe square")
+      (description "King\A King can move to any adjacent square, but never to a 
+	      square where it can be captured.  It may not castle in this variant.")
+      (image White "img\wking.bmp"
+             Black "img\bking.bmp")
+      (moves
+         (shift n)
+         (shift s)
+         (shift e)
+         (shift w)
+         (shift ne)
+         (shift nw)
+         (shift se)
+         (shift sw)
+      )
+   )
+
+   (loss-condition (White Black) (checkmated King) )
+)

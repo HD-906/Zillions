@@ -1,0 +1,780 @@
+; *** Seki Senki
+; *** Copyright 1998-2002 Zillions Development
+; v.2.0
+
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+
+
+(define setup-add    ((verify (and empty? (in-zone? penalty-zone))) (create Red sync) add))
+(define ranki        9i 8i 7i 6i 5i 4i 3i 2i 1i)
+(define rankii       9ii 8ii 7ii 6ii 5ii 4ii 3ii 2ii 1ii)
+(define rankiii      9iii 8iii 7iii 6iii 5iii 4iii 3iii 2iii 1iii)
+(define rankiv       9iv 8iv 7iv 6iv 5iv 4iv 3iv 2iv 1iv)
+(define rankv        9v 8v 7v 6v 5v 4v 3v 2v 1v)
+(define rankvi       9vi 8vi 7vi 6vi 5vi 4vi 3vi 2vi 1vi)
+(define rankvii      9vii 8vii 7vii 6vii 5vii 4vii 3vii 2vii 1vii)
+(define rankviii     9viii 8viii 7viii 6viii 5viii 4viii 3viii 2viii 1viii)
+(define rankix       9ix 8ix 7ix 6ix 5ix 4ix 3ix 2ix 1ix)
+(define swap-pieces  (verify (and (friend? $1) (in-zone? penalty-zone $1))) $1 cascade from back add)
+(define red-bulb-off
+   mark to-standby to-bulb opp-bulb (if not-empty? capture) back
+)
+(define take
+   (if (and enemy? (or (piece? HighRook) (piece? Rook)))
+        cascade
+		mark	
+			to-standby
+			(rook-to)
+	back
+   )
+   (if (and enemy? (piece? Gold))
+        cascade
+		mark	
+			to-standby s
+			(gold-to)
+	back
+   )
+   (if (and enemy? (piece? Silver))
+        cascade
+		mark	
+			to-standby s s
+			(silver-to)
+	back
+   )
+   (if (and enemy? (piece? Pawn))
+        cascade
+		mark	
+			to-standby n
+			to (change-type CaptPawn) change-owner
+	back
+   )
+)
+(define rook-to     
+	(if (piece? Rook) to (change-type 2Rooks))
+	(if empty? to (change-type Rook))
+)
+(define gold-to     
+	(if (piece? 2Golds) to (change-type 3Golds))
+	(if (piece? Gold) to (change-type 2Golds))
+	(if empty? to)
+)
+(define silver-to     
+	(if (piece? 2Silvers) to (change-type 3Silvers))
+	(if (piece? Silver) to (change-type 2Silvers))
+	(if empty? to)
+)
+(define win-checkRH    
+	(if (and not-attacked? (in-zone? e-penalty-zone)) mark to-standby next-bulb 
+	(while not-empty? next-bulb) (create GreenBulb) back capture)
+)
+(define win-checkGS     
+	(if (and not-attacked? (in-zone? e-line-camp)) mark to-standby next-bulb 
+	(while not-empty? next-bulb) (create GreenBulb) back capture)
+)
+(define win-checkP     
+	(if (and not-attacked? (in-zone? e-side)) mark to-standby next-bulb 
+	(while friend? next-bulb) (create GreenBulb) back capture)
+)
+(define inst-win-checkRH    
+	(verify (and not-attacked? (in-zone? e-penalty-zone))) mark to-standby next-bulb 
+	(while not-empty? next-bulb) (create GreenBulb) back capture
+)
+(define inst-win-checkGS     
+	(verify (and not-attacked? (in-zone? e-line-camp))) mark to-standby next-bulb 
+	(while not-empty? next-bulb) (create GreenBulb) back capture
+)
+(define inst-win-checkP     
+	(verify (and not-attacked? (in-zone? e-side))) mark to-standby next-bulb 
+	(while friend? next-bulb) (create GreenBulb) back capture
+)
+
+(define slide  (
+   (verify (in-zone? play-zone))
+   $1 (while empty? (red-bulb-off) (win-checkRH) add $1)
+   (verify not-friend?)
+   (take) (red-bulb-off) (win-checkRH)
+   add
+))
+
+(define slideP (
+   (verify (in-zone? play-zone))
+   (set-flag came-from-zone (in-zone? e-side))
+   $1
+   (while empty?
+      (if (in-zone? e-side) (set-flag came-from-zone true))
+      (if (flag? came-from-zone) (red-bulb-off) (win-checkRH) (add HighRook) else (red-bulb-off) (win-checkRH) add)
+      $1
+   )
+   (verify not-friend?)
+   (if (and (not-flag? came-from-zone) (not-in-zone? e-side))
+   (take)
+   (red-bulb-off) (win-checkRH) add
+   else (take) (change-type HighRook) (red-bulb-off) (win-checkRH) add
+   )
+))
+(define shift (
+   (verify (in-zone? play-zone))
+   $1
+   (verify not-friend?)
+   (take)
+   (red-bulb-off) (win-checkGS) add
+))
+(define shift2 (
+   (verify (in-zone? play-zone))
+   $1
+   (verify empty?)
+   $1
+   (verify not-friend?)
+   (take)
+   (red-bulb-off) (win-checkGS) add
+))
+(define Hshift (
+   (verify (in-zone? play-zone))
+   $1
+   (verify not-friend?)
+   (take)
+   (red-bulb-off) (win-checkRH) add
+))
+(define Hshift2 (
+   (verify (in-zone? play-zone))
+   $1
+   (verify empty?)
+   $1
+   (verify not-friend?)
+   (take)
+   (red-bulb-off) (win-checkRH) add
+))
+(define shift-move (
+   (verify (in-zone? play-zone))
+   $1
+   (verify empty?)
+   (red-bulb-off) (win-checkP) add
+))
+(define shift-capture (
+   (verify (in-zone? play-zone))
+   $1
+   (verify enemy?)
+   (take)
+   (red-bulb-off) (win-checkP) add
+))
+(define leap-move (
+   (verify (and (in-zone? play-zone) (friend? $1) (piece? Pawn $1)))
+   $1
+   (while (and (friend? $1) (piece? Pawn $1)) $1) $1
+   (verify empty?)
+   (red-bulb-off) (win-checkP) add
+))
+
+(define fslide  (
+   (verify (in-zone? play-zone))
+   $1 (while empty? $1)
+   (verify
+	(or
+		(and enemy? (piece? Pawn) (in-zone? my-side))
+		(and enemy? (or (piece? Silver) (piece? Gold)) (in-zone? line-camp))
+		(and enemy? (or (piece? Rook) (piece? HighRook)) (in-zone? penalty-zone))
+	)
+   )
+   (take) (red-bulb-off)
+   add
+))
+
+(define fslideP (
+   (verify (in-zone? play-zone))
+   (set-flag came-from-zone (in-zone? e-side))
+   s
+   (while empty? s)
+   (verify
+	(or
+		(and enemy? (piece? Pawn) (in-zone? my-side))
+		(and enemy? (or (piece? Silver) (piece? Gold)) (in-zone? line-camp))
+		(and enemy? (or (piece? Rook) (piece? HighRook)) (in-zone? penalty-zone))
+	)
+   )
+   (if (not-flag? came-from-zone)
+	(take)
+	(red-bulb-off) add
+	else (take) (change-type HighRook) (red-bulb-off) add
+   )
+))
+(define fshift (
+   (verify (in-zone? play-zone))
+   $1
+   (verify
+	(or
+		(and enemy? (piece? Pawn) (in-zone? my-side))
+		(and enemy? (or (piece? Silver) (piece? Gold)) (in-zone? line-camp))
+		(and enemy? (or (piece? Rook) (piece? HighRook)) (in-zone? penalty-zone))
+	)
+   )
+   (take)
+   (red-bulb-off) add
+))
+(define fshift2 (
+   (verify (in-zone? play-zone))
+   $1
+   (verify empty?)
+   $1
+   (verify
+	(or
+		(and enemy? (piece? Pawn) (in-zone? my-side))
+		(and enemy? (or (piece? Silver) (piece? Gold)) (in-zone? line-camp))
+		(and enemy? (or (piece? Rook) (piece? HighRook)) (in-zone? penalty-zone))
+	)
+   )
+   (take)
+   (red-bulb-off) add
+))
+
+(define drop-for-rank
+	(while (on-board? w)
+		(if empty? mark (go from) to-bulb (create Neutral RedBulb) back add)
+		w
+	)
+	(if empty? mark (go from) to-bulb (create Neutral RedBulb) back add)
+	(while (on-board? e) e)
+)
+(define drop 
+	(verify (not-in-zone? play-zone))
+	to-board
+	(while (on-board?  s)
+			(drop-for-rank)
+		s
+	)
+	(drop-for-rank)
+)
+(define drop-for-rank2
+	(while (on-board? w)
+		(if empty? mark (go from) (create $1) to-bulb (create Neutral RedBulb) back (add $1))
+		w
+	)
+	(if empty? mark (go from) (create $1) to-bulb (create Neutral RedBulb) back (add $1))
+	(while (on-board? e) e)
+)
+(define drop2 
+	(verify (not-in-zone? play-zone))
+	to-board
+	(while (on-board?  s)
+			(drop-for-rank2 $1)
+		s
+	)
+	(drop-for-rank2 $1)
+)
+(define drop-for-rank3
+	(while (on-board? w)
+		(if empty? mark (go from) (create $2) to-bulb (create Neutral RedBulb) back (add $1))
+		w
+	)
+	(if empty? mark (go from) (create $2) to-bulb (create Neutral RedBulb) back (add $1))
+	(while (on-board? e) e)
+)
+(define drop3 
+	(verify (not-in-zone? play-zone))
+	to-board
+	(while (on-board?  s)
+			(drop-for-rank3 $1 $2)
+		s
+	)
+	(drop-for-rank3 $1 $2)
+)
+(define drop-for-rankPawn
+	(while (on-board? w)
+		(if empty? (change-type Pawn) flip flip add)
+		w
+	)
+	(if empty? (change-type Pawn) flip flip add)
+)
+(define dropPawn (
+	(verify (not-in-zone? play-zone))
+	to-board n n
+	(while (on-board?  n)
+		mark
+			(drop-for-rankPawn)
+		back
+		n
+	)
+	(drop-for-rankPawn)
+))
+
+(game
+   (title "Seki Senki")
+   (opening-sound "Audio\\REVERSE.wav")
+   (win-sound "Audio\Orchestra_CF.wav")
+   (loss-sound "Audio\Orchestra_FC.wav")
+   (release-sound "Audio\\BongPercussive.wav")
+   (drop-sound "Audio\\Bong5th.wav")
+   (move-sound "Audio\\Slide.wav")
+   (capture-sound "Audio\\DING.WAV")
+   (players Red Neutral Black Neutral)
+   (
+	turn-order (Red nil)
+		(Black setup) (Black setup) (Black setup) (Black setup)
+		(Black setup) (Black setup) (Black setup) (Black setup) (Red swap)
+		repeat Red (Red PawnPlace) (Red inst-win) Black (Black PawnPlace) (Black inst-win)
+   )
+   (option "pass turn" forced)
+   (option "recycle captures" false)
+   (option "animate captures" false)
+   (move-priorities capt-win-zone play)
+
+
+   (board
+      (image "Seki_Senki.bmp")
+     (grid
+       (start-rectangle 67 4 115 52)
+       (dimensions
+          ("1/2/3/4/5/6/7/8/9" (49 0)) ; files
+          ("ix/viii/vii/vi/v/iv/iii/ii/i" (0 49)) ; ranks
+       )
+       (directions (n 0 -1) (e 1 0) (s 0 1) (w -1 0)
+	 		     (ne 1 -1) (nw -1 -1) (se 1 1) (sw -1 1)
+       )
+     )
+		(positions
+			(rSsq  523 102 566 150)
+			(rGsq  523 151 566 199)
+			(rRsq  523 200 566 248)
+			(bPsq  523 298 566 346)
+			(rPsq  7   102 50  150)
+			(bRsq  7   200 50  248)
+			(bGsq  7   249 50  297)
+			(bSsq  7   298 50  346)
+
+			(rgb1 519 272 536 291)
+			(rgb2 536 272 553 291)
+			(rgb3 553 272 570 291)
+			(rrb1 536 247 553 266)
+			(bgb3 2  155 19 174)
+			(bgb2 19 155 36 174)
+			(bgb1 36 155 53 174)
+			(brb1 19 180 36 199)
+		)
+		(links sync
+			(7viii 3ii) (6viii 4ii) (5viii 5ii) (4viii 6ii) (3viii 7ii)
+			(7ix 3i) (6ix 4i) (5ix 5i) (4ix 6i) (3ix 7i) 
+		)
+		(links next-bulb
+			(bRsq rgb1) (rgb1 rgb2) (rgb2 rgb3) (rRsq bgb1) (bgb1 bgb2) (bgb2 bgb3)
+		)
+		(links to-standby
+			(9i bRsq) (8i bRsq) (7i bRsq) (6i bRsq) (5i bRsq) (4i bRsq) (3i bRsq) (2i bRsq) (1i bRsq)
+            (9ii bRsq) (8ii bRsq) (7ii bRsq) (6ii bRsq) (5ii bRsq) (4ii bRsq) (3ii bRsq) (2ii bRsq) (1ii bRsq)
+            (9iii bRsq) (8iii bRsq) (7iii bRsq) (6iii bRsq) (5iii bRsq) (4iii bRsq) (3iii bRsq) (2iii bRsq) (1iii bRsq)
+            (9iv bRsq) (8iv bRsq) (7iv bRsq) (6iv bRsq) (5iv bRsq) (4iv bRsq) (3iv bRsq) (2iv bRsq) (1iv bRsq)
+            (9v bRsq) (8v bRsq) (7v bRsq) (6v bRsq) (5v bRsq) (4v bRsq) (3v bRsq) (2v bRsq) (1v bRsq)
+            (9vi bRsq) (8vi bRsq) (7vi bRsq) (6vi bRsq) (5vi bRsq) (4vi bRsq) (3vi bRsq) (2vi bRsq) (1vi bRsq)
+            (9vii bRsq) (8vii bRsq) (7vii bRsq) (6vii bRsq) (5vii bRsq) (4vii bRsq) (3vii bRsq) (2vii bRsq) (1vii bRsq)
+            (9viii bRsq) (8viii bRsq) (7viii bRsq) (6viii bRsq) (5viii bRsq) (4viii bRsq) (3viii bRsq) (2viii bRsq) (1viii bRsq)
+            (9ix bRsq) (8ix bRsq) (7ix bRsq) (6ix bRsq) (5ix bRsq) (4ix bRsq) (3ix bRsq) (2ix bRsq) (1ix bRsq)
+		)
+
+		(links to-red-standby
+			(9i rRsq) (8i rRsq) (7i rRsq) (6i rRsq) (5i rRsq) (4i rRsq) (3i rRsq) (2i rRsq) (1i rRsq)
+            (9ii rRsq) (8ii rRsq) (7ii rRsq) (6ii rRsq) (5ii rRsq) (4ii rRsq) (3ii rRsq) (2ii rRsq) (1ii rRsq)
+            (9iii rRsq) (8iii rRsq) (7iii rRsq) (6iii rRsq) (5iii rRsq) (4iii rRsq) (3iii rRsq) (2iii rRsq) (1iii rRsq)
+            (9iv rRsq) (8iv rRsq) (7iv rRsq) (6iv rRsq) (5iv rRsq) (4iv rRsq) (3iv rRsq) (2iv rRsq) (1iv rRsq)
+            (9v rRsq) (8v rRsq) (7v rRsq) (6v rRsq) (5v rRsq) (4v rRsq) (3v rRsq) (2v rRsq) (1v rRsq)
+            (9vi rRsq) (8vi rRsq) (7vi rRsq) (6vi rRsq) (5vi rRsq) (4vi rRsq) (3vi rRsq) (2vi rRsq) (1vi rRsq)
+            (9vii rRsq) (8vii rRsq) (7vii rRsq) (6vii rRsq) (5vii rRsq) (4vii rRsq) (3vii rRsq) (2vii rRsq) (1vii rRsq)
+            (9viii rRsq) (8viii rRsq) (7viii rRsq) (6viii rRsq) (5viii rRsq) (4viii rRsq) (3viii rRsq) (2viii rRsq) (1viii rRsq)
+            (9ix rRsq) (8ix rRsq) (7ix rRsq) (6ix rRsq) (5ix rRsq) (4ix rRsq) (3ix rRsq) (2ix rRsq) (1ix rRsq)
+		)
+		(links n
+			(bSsq bGsq) (bGsq bRsq) (bRsq bPsq) (rRsq rGsq) (rGsq rSsq)
+		)
+
+		(links s
+			(rSsq rGsq) (rGsq rRsq) (rRsq rPsq) (bRsq bGsq) (bGsq bSsq)
+		)
+		(links to-board
+               (rRsq 9v)    (rGsq 9v)    (rSsq 9v)    (rPsq 9v)  
+               (bRsq 9v)     (bGsq 9v)     (bSsq 9v)     (bPsq 9v)
+		)
+		(links to-bulb
+               (rRsq rrb1)    (rGsq rrb1)    (rSsq rrb1)  
+               (bRsq brb1)     (bGsq brb1)     (bSsq brb1)
+		)
+		(links opp-bulb
+               (brb1 rrb1)    (rrb1 brb1)
+		)
+            (symmetry Black (n s)(s n) (nw sw)(sw nw) (ne se)(se ne) (to-standby to-red-standby))
+
+        (zone
+           (name penalty-zone)
+           (players Red)
+           (positions 7i 6i 5i 4i 3i 7ii 6ii 5ii 4ii 3ii)
+        )
+        (zone
+           (name penalty-zone)
+           (players Black)
+           (positions 7viii 6viii 5viii 4viii 3viii 7ix 6ix 5ix 4ix 3ix)
+        )
+        (zone
+           (name e-penalty-zone)
+           (players Black)
+           (positions 7i 6i 5i 4i 3i 7ii 6ii 5ii 4ii 3ii)
+        )
+        (zone
+           (name e-penalty-zone)
+           (players Red)
+           (positions 7viii 6viii 5viii 4viii 3viii 7ix 6ix 5ix 4ix 3ix)
+        )
+        (zone
+           (name line-camp)
+           (players Red)
+           (positions (ranki) (rankii))
+        )
+        (zone
+           (name line-camp)
+           (players Black)
+           (positions (rankviii) (rankix))
+        )
+        (zone
+           (name e-line-camp)
+           (players Black)
+           (positions (ranki) (rankii))
+        )
+        (zone
+           (name e-line-camp)
+           (players Red)
+           (positions (rankviii) (rankix))
+        )
+        (zone
+           (name my-side)
+           (players Red)
+           (positions (ranki) (rankii) (rankiii))
+        )
+        (zone
+           (name my-side)
+           (players Black)
+           (positions (rankvii) (rankviii) (rankix))
+        )
+        (zone
+           (name e-side)
+           (players Black)
+           (positions (ranki) (rankii) (rankiii))
+        )
+        (zone
+           (name e-side)
+           (players Red)
+           (positions (rankvii) (rankviii) (rankix))
+        )
+        (zone
+           (name play-zone)
+           (players Red Black)
+           (positions (ranki) (rankii) (rankiii) (rankiv) (rankv) (rankvi) (rankvii) (rankviii) (rankix))
+        )
+   )
+
+    (board-setup
+        (Red (Pawn (rankiii))
+        )
+        (Black (Pawn (rankvii))
+               (Silver off 3)
+               (Gold off 3)
+               (Rook off 2)
+        )
+    )
+
+   (piece
+      (name Pawn)
+      (image Red "RPawn.bmp" Black "BPawn.bmp")
+      (moves
+             (move-type inst-win)
+		((inst-win-checkP) add)
+             (move-type capt-win-zone)
+		(fshift ne)
+		(fshift nw)
+             (move-type play)
+		(shift-move n)
+		(leap-move n)
+		(shift-capture ne)
+		(shift-capture nw)
+      )
+   )
+   (piece
+      (name Silver)
+      (image Red "RSilver.bmp" Black "BSilver.bmp")
+      (drops
+             (move-type setup)
+		(setup-add)
+      )
+      (moves
+             (move-type inst-win)
+		((inst-win-checkGS) add)
+             (move-type capt-win-zone)
+		(fshift n)
+		(fshift ne)
+		(fshift nw)
+		(fshift se)
+		(fshift sw)
+		(fshift2 n)
+		(fshift2 ne)
+		(fshift2 nw)
+		(fshift2 se)
+		(fshift2 sw)
+             (move-type play)
+		(shift n)
+		(shift ne)
+		(shift nw)
+		(shift se)
+		(shift sw)
+		(shift2 n)
+		(shift2 ne)
+		(shift2 nw)
+		(shift2 se)
+		(shift2 sw)
+		((verify (empty? to-bulb)) (drop))
+             (move-type swap)
+		((swap-pieces n))
+		((swap-pieces e))
+		((swap-pieces s))
+		((swap-pieces w))
+		((swap-pieces ne))
+		((swap-pieces nw))
+		((swap-pieces se))
+		((swap-pieces sw))
+		(e (swap-pieces e))
+		(e (swap-pieces ne))
+		(e (swap-pieces se))
+		(w (swap-pieces w))
+		(w (swap-pieces nw))
+		(w (swap-pieces sw))
+		(e e (swap-pieces e))
+		(e e (swap-pieces ne))
+		(e e (swap-pieces se))
+		(w w (swap-pieces w))
+		(w w (swap-pieces nw))
+		(w w (swap-pieces sw))
+		(e e e (swap-pieces e))
+		(e e e (swap-pieces ne))
+		(e e e (swap-pieces se))
+		(w w w (swap-pieces w))
+		(w w w (swap-pieces nw))
+		(w w w (swap-pieces sw))
+      )
+   )
+   (piece
+      (name Gold)
+      (image Red "RGold.bmp" Black "BGold.bmp")
+      (drops
+             (move-type setup)
+		(setup-add)
+      )
+      (moves
+             (move-type inst-win)
+		((inst-win-checkGS) add)
+             (move-type capt-win-zone)
+		(fshift n)
+		(fshift s)
+		(fshift e)
+		(fshift w)
+		(fshift ne)
+		(fshift nw)
+		(fshift2 n)
+		(fshift2 s)
+		(fshift2 e)
+		(fshift2 w)
+		(fshift2 ne)
+		(fshift2 nw)
+             (move-type play)
+		(shift n)
+		(shift s)
+		(shift e)
+		(shift w)
+		(shift ne)
+		(shift nw)
+		(shift2 n)
+		(shift2 s)
+		(shift2 e)
+		(shift2 w)
+		(shift2 ne)
+		(shift2 nw)
+		((verify (empty? to-bulb)) (drop))
+             (move-type swap)
+		((swap-pieces n))
+		((swap-pieces e))
+		((swap-pieces s))
+		((swap-pieces w))
+		((swap-pieces ne))
+		((swap-pieces nw))
+		((swap-pieces se))
+		((swap-pieces sw))
+		(e (swap-pieces e))
+		(e (swap-pieces ne))
+		(e (swap-pieces se))
+		(w (swap-pieces w))
+		(w (swap-pieces nw))
+		(w (swap-pieces sw))
+		(e e (swap-pieces e))
+		(e e (swap-pieces ne))
+		(e e (swap-pieces se))
+		(w w (swap-pieces w))
+		(w w (swap-pieces nw))
+		(w w (swap-pieces sw))
+		(e e e (swap-pieces e))
+		(e e e (swap-pieces ne))
+		(e e e (swap-pieces se))
+		(w w w (swap-pieces w))
+		(w w w (swap-pieces nw))
+		(w w w (swap-pieces sw))
+      )
+   )
+   (piece
+      (name Rook)
+      (image Red "RRook.bmp" Black "BRook.bmp")
+      (drops
+             (move-type setup)
+		(setup-add)
+      )
+      (moves
+             (move-type inst-win)
+		((inst-win-checkRH) add)
+             (move-type capt-win-zone)
+		(fslideP)
+		(fslide n)
+		(fslide e)
+		(fslide w)
+             (move-type play)
+		(slideP n)
+		(slideP s)
+		(slideP e)
+		(slideP w)
+		((verify (empty? to-bulb)) (drop))
+             (move-type swap)
+		((swap-pieces n))
+		((swap-pieces e))
+		((swap-pieces s))
+		((swap-pieces w))
+		((swap-pieces ne))
+		((swap-pieces nw))
+		((swap-pieces se))
+		((swap-pieces sw))
+		(e (swap-pieces e))
+		(e (swap-pieces ne))
+		(e (swap-pieces se))
+		(w (swap-pieces w))
+		(w (swap-pieces nw))
+		(w (swap-pieces sw))
+		(e e (swap-pieces e))
+		(e e (swap-pieces ne))
+		(e e (swap-pieces se))
+		(w w (swap-pieces w))
+		(w w (swap-pieces nw))
+		(w w (swap-pieces sw))
+		(e e e (swap-pieces e))
+		(e e e (swap-pieces ne))
+		(e e e (swap-pieces se))
+		(w w w (swap-pieces w))
+		(w w w (swap-pieces nw))
+		(w w w (swap-pieces sw))
+      )
+   )
+   (piece
+      (name HighRook)
+      (image Red "RHighRook.bmp" Black "BHighRook.bmp")
+      (moves
+             (move-type inst-win)
+		((inst-win-checkRH) add)
+             (move-type capt-win-zone)
+           (fslide n)
+           (fslide s)
+           (fslide e)
+           (fslide w)
+           (fshift nw)
+           (fshift ne)
+           (fshift sw)
+           (fshift se)
+           (fshift2 nw)
+           (fshift2 ne)
+           (fshift2 sw)
+           (fshift2 se)
+             (move-type play)
+           (slide n)
+           (slide s)
+           (slide e)
+           (slide w)
+           (Hshift nw)
+           (Hshift ne)
+           (Hshift sw)
+           (Hshift se)
+           (Hshift2 nw)
+           (Hshift2 ne)
+           (Hshift2 sw)
+           (Hshift2 se)
+      )
+   )
+   (piece
+      (name CaptPawn)
+      (image Red "BPawn.bmp" Black "RPawn.bmp")
+      (moves
+             (move-type PawnPlace)
+		(dropPawn)
+      )
+   )
+   (piece
+      (name 2Golds)
+      (image Red "RGold2.bmp" Black "BGold2.bmp")
+      (moves
+             (move-type play)
+		((verify (empty? to-bulb)) (drop2 Gold))
+      )
+   )
+   (piece
+      (name 3Golds)
+      (image Red "RGold3.bmp" Black "BGold3.bmp")
+      (moves
+             (move-type play)
+		((verify (empty? to-bulb)) (drop3 Gold 2Golds))
+      )
+   )
+   (piece
+      (name 2Silvers)
+      (image Red "RSilver2.bmp" Black "BSilver2.bmp")
+      (moves
+             (move-type play)
+		((verify (empty? to-bulb)) (drop2 Silver))
+      )
+   )
+   (piece
+      (name 3Silvers)
+      (image Red "RSilver3.bmp" Black "BSilver3.bmp")
+      (moves
+             (move-type play)
+		((verify (empty? to-bulb)) (drop3 Silver 2Silvers))
+      )
+   )
+   (piece
+      (name 2Rooks)
+      (image Red "RRook2.bmp" Black "BRook2.bmp")
+      (moves
+             (move-type play)
+		((verify (empty? to-bulb)) (drop2 Rook))
+      )
+   )
+   (piece
+      (name RedBulb) (dummy)
+      (image Neutral "RedBulb.bmp")
+      (drops
+             (move-type nil)
+      )
+   )
+   (piece
+      (name GreenBulb) (dummy)
+      (image Red "GreenBulb.bmp" Black "GreenBulb.bmp")
+      (drops
+             (move-type nil)
+      )
+   )
+   (win-condition (Red Black) (pieces-remaining 3 GreenBulb) )
+   (loss-condition (Red Black) repetition )
+)
+
+; **************************************************************************
+; VARIANTS
+; **************************************************************************
+(variant
+   (title "-") ; --------------------------------------------------------
+)

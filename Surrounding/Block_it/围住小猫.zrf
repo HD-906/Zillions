@@ -1,0 +1,157 @@
+; *** Chess_Challenge
+; *** Copyright 1998-2002 Zillions Development
+; v.2.0
+
+; You need to purchase Zillions of Games to load this rules file
+; Visit the Zillions web site at http://www.zillions-of-games.com
+
+(version "2.0")
+
+(define shift ($1 (verify empty?) add))
+(game
+   (title "Block it 20")
+   (option "prevent flipping" true)
+   (option "animate drops" false)
+   (option "progressive levels" true)
+   (win-sound "Audio\Orchestra_CF.wav")
+   (loss-sound "Audio\Orchestra_FC.wav")
+   (click-sound "Audio\Pickup.wav")
+   (release-sound "Audio\WoodThunk.wav")
+   (players ?Setup Human Cat)
+   (turn-order ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+   (board 
+  (image "images\Block_it\BlockitBrd.bmp")
+  (grid
+     (start-rectangle 54 43 85 73)
+     (dimensions
+         ("a/b/c/d/e/f/g/h/i/j/k/l" (-22 38)) ; files
+         ("16/15/14/13/12/11/10/9/8/7/6/5/4/3/2/1" (44 0)) ; ranks
+     )
+     (directions (e 0 -1) (w 0 1) (sw 1 0) (ne -1 0) (nw -1 -1) (se 1 1)
+     )
+  )
+    (kill-positions
+        a1  b1  c1  d1  e1  f1  g1  h1  i1  j1
+        a2  b2  c2  d2  e2  f2  g2  h2
+        a3  b3  c3  d3  e3  f3
+        a4  b4  c4  d4
+        a5  b5
+                                                k12 l12
+                                        i13 j13 k13 l13
+                                g14 h14 i14 j14 k14 l14
+                        e15 f15 g15 h15 i15 j15 k15 l15
+                c16 d16 e16 f16 g16 h16 i16 j16 k16 l16
+    )
+  (zone
+     (name escaped-zone)
+     (players Cat)
+     (positions a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16
+                b6 b16 c5 c15 d5 d15 e4 e14 f4 f14
+                g3 g13 h3 h13 i2 i12 j2 j12 k1 k11
+                l1 l2 l3 l4 l5 l6 l7 l8 l9 l10 l11 l12 l13 l14 l15 l16)
+  )
+)
+   (board-setup
+      (Cat
+         (Cat f9)
+      )
+      (Human
+         (Block off 132)
+      )
+      (?Setup
+         (Block off 132)
+      )
+   )
+   (piece
+      (name Cat)
+      (image Cat "images\Chess\SHaag\wpawn.bmp")
+      (moves
+         (shift ne)
+         (shift nw)
+         (shift se)
+         (shift sw)
+         (shift e)
+         (shift w)
+      )
+   )
+   (piece
+      (name Block)
+      (image Human "images\Chess\Block.bmp" ?Setup "images\Chess\Block.bmp")
+      (drops
+         ((verify empty?) add)
+      )
+   )
+
+   (loss-condition Cat stalemated)
+   (win-condition Cat (absolute-config Cat (escaped-zone)))
+)
+; **************************************************************************
+(variant
+   (title "Block it 18")
+   (turn-order ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 16")
+   (turn-order ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 14")
+   (turn-order ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 12")
+   (turn-order ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 10")
+   (turn-order ?Setup ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 8")
+   (turn-order ?Setup ?Setup ?Setup ?Setup
+               ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 6")
+   (turn-order ?Setup ?Setup ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 4")
+   (turn-order ?Setup ?Setup ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 2")
+   (turn-order ?Setup ?Setup
+               repeat Human Cat)
+)
+; **************************************************************************
+(variant
+   (title "Block it 0")
+   (turn-order Human Cat)
+)
