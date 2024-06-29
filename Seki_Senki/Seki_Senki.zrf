@@ -1,11 +1,7 @@
-; *** Seki Senki
-; *** Copyright 1998-2002 Zillions Development
-; v.2.0
-
 ; You need to purchase Zillions of Games to load this rules file
 ; Visit the Zillions web site at http://www.zillions-of-games.com
 
-
+(version "2.0")
 
 (define setup-add    ((verify (and empty? (in-zone? penalty-zone))) (create Red sync) add))
 (define ranki        9i 8i 7i 6i 5i 4i 3i 2i 1i)
